@@ -2,7 +2,7 @@ const init = xs => xs.slice(0, xs.length - 1)
 const last = xs => xs[xs.length - 1]
 const compose = (...fs) => fs.reduceRight((acc, f) => x => f(acc(x)), x => x)
 
-export default class Observable {
+export class Observable {
   constructor(subscribe) {
     this._subscribe = subscribe
   }
@@ -246,5 +246,69 @@ export default class Observable {
         },
       }
     })
+  }
+
+  share() {
+    let observers = []
+    let subscription = { unsubscribe() {} }
+
+    return new Observable(observer => {
+      observers.push(observer)
+
+      if (observers.length === 1) {
+        subscription = this._subscribe({
+          next: x => observers.forEach(o => o.next(x)),
+          complete: () => observers.forEach(o => o.complete()),
+          error: x => observers.forEach(o => o.error(x)),
+        })
+      }
+
+      return {
+        unsubscribe: () => {
+          observers = observers.filter(o => o !== observer)
+          if (observers.length === 0) {
+            subscription.unsubscribe()
+          }
+        },
+      }
+    })
+  }
+}
+
+export class Subject extends Observable {
+  constructor() {
+    super(observer => {
+      this.observer = observer
+    })
+  }
+
+  next(x) {
+    this.observer.next(x)
+  }
+
+  complete(x) {
+    this.observer.complete(x)
+  }
+
+  error(x) {
+    this.observer.error(x)
+  }
+}
+
+export class BehaviorSubject extends Subject {
+  constructor(value) {
+    super()
+    this._value = value
+  }
+
+  subscribe(observer) {
+    const subscription = super.subscribe(observer)
+    observer.next(this._value)
+    return subscription
+  }
+
+  next(x) {
+    this._value = x
+    return super.next(x)
   }
 }

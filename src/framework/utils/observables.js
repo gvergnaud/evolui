@@ -37,4 +37,5 @@ export const raf = new Observable(observer => {
   }
 })
 
-export const all = obs => Observable.combineLatest(...obs, (...xs) => xs)
+export const all = obs =>
+  obs.length ? Observable.combineLatest(...obs, (...xs) => xs) : Observable.of([])

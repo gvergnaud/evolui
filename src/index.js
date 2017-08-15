@@ -1,55 +1,133 @@
 import { listen, html, render, handler } from './framework'
-import { Observable, Subject } from 'rxjs'
+import { all } from './framework/utils/observables'
+import { Observable } from 'rxjs'
+import createStore from './createStore'
 
-var s = new Subject()
-console.log(s)
+// const mouse$ = listen(window, 'mousemove')
+//   .map(({ clientX: x, clientY: y }) => ({ x, y }))
+//   .startWith({ x: 0, y: 0 })
 
-const mouse$ = listen(window, 'mousemove')
-  .map(({ clientX: x, clientY: y }) => ({ x, y }))
-  .startWith({ x: 0, y: 0 })
-  .takeUntil(Observable.timer(5000))
+const initialState = {
+  text: '',
+  todos: [],
+}
 
-const Container = children => html`
-  <div
-    class="container"
-    style="
-      padding:20px;
-      color:white;
-      background-color: #444;
-      position: absolute;
-      transform: translate(${mouse$.map(x => x.x)}px, ${mouse$.map(x => x.y)}px);
-    ">
-    ${children}
-  </div>
-`
+const reducer = (state, action) => {
+  switch (action.type) {
+    case 'UPDATE_TEXT':
+      return {
+        ...state,
+        text: action.text,
+      }
+    case 'ADD_TODO':
+      return {
+        ...state,
+        text: '',
+        todos: state.todos.concat({
+          isEditing: false,
+          id: state.todos.length,
+          text: action.text,
+        }),
+      }
 
-const Flex = children => html`
-  <div style="display: flex; justify-content: space-between;">
-    ${children}
-  </div>
-`
-const Hello = name => html`<p>Hello, ${name}!</p>`
+    case 'TOGGLE_EDIT_TODO':
+      return {
+        ...state,
+        todos: state.todos.map(
+          todo =>
+            todo.id === action.id
+              ? {
+                  ...todo,
+                  isEditing: !todo.isEditing,
+                }
+              : todo
+        ),
+      }
+    case 'UPDATE_TODO':
+      return {
+        ...state,
+        text: '',
+        todos: state.todos.map(
+          todo =>
+            todo.id === action.id
+              ? {
+                  ...todo,
+                  text: action.text,
+                }
+              : todo
+        ),
+      }
+    default:
+      return state
+  }
+}
 
-const Counter = () => {
-  const subject = new Subject()
-  const count = subject.scan(x => x + 1, 0).startWith(0)
+const store = createStore(reducer, initialState)
+
+const InputBar = () => {
+  const onKeyDown = e => {
+    if (e.which === 13) store.dispatch({ type: 'ADD_TODO', text: e.target.value })
+  }
+
+  const onInput = e => store.dispatch({ type: 'UPDATE_TEXT', text: e.target.value })
+
   return html`
-    <div>
-      <span>${count}</span>
-      <button onclick="${handler(() => subject.next())}">click me</button>
-    </div>
+    <input
+      value="${store.state.map(({ text }) => text)}"
+      data-oninput="${handler(onInput)}"
+      data-onkeydown="${handler(onKeyDown)}" />
   `
 }
 
-const App = html`
-<div>
-  ${Container([
-    Flex([Hello('Gab'), Flex([Hello('Gab'), Flex([Hello('Gab'), Hello('Gabzor'), Counter()])])]),
-    html`<h1>Je suis un titre</h1>`,
-  ])}
-  ${Counter()}
-  ${Counter()}
-</div>
+const Ticker = () => Observable.interval(1000).startWith(0).switchMap(n => html`<span>${n}</span>`)
+
+const Todo = ({ todo }) => {
+  const onToggle = () => store.dispatch({ type: 'TOGGLE_EDIT_TODO', id: todo.id })
+
+  const onInput = e => {
+    store.dispatch({ type: 'UPDATE_TODO', id: todo.id, text: e.target.value })
+  }
+
+  const onKeyDown = e => {
+    if (e.which === 13) onToggle()
+  }
+
+  return html`
+    <li data-onclick="${handler(onToggle)}">
+      ${todo.isEditing
+        ? html`
+            <input
+              value="${todo.text}"
+              data-oninput="${handler(onInput)}"
+              data-onkeydown="${handler(onKeyDown)}" />
+          `
+        : todo.text}
+    </li>
+  `
+}
+
+const TodoList = ({ todos }) => html`
+  <ul>
+    ${todos.map(todo => Todo({ todo }))}
+  </ul>
 `
 
-render(App, document.querySelector('#root'))
+const App = () => html`
+  <div>
+    ${Ticker()}
+    ${InputBar()}
+
+    ${store.state.switchMap(({ todos }) => TodoList({ todos }))}
+
+    ${store.state.switchMap(
+      ({ todos }) =>
+        html`
+          ${todos.length % 2 ? TodoList({ todos }) : ''}
+        `
+    )}
+  </div>
+`
+
+const range = n => (n === 0 ? [n] : [n, ...range(n - 1)])
+
+render(App(), document.querySelector('#root'))

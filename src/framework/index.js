@@ -1,22 +1,21 @@
 import morphdom from 'morphdom'
-// import { minifyHTML } from './utils/strings'
 import { toObservable, raf, listen, all } from './utils/observables'
 import { orderFragments } from './utils/strings'
-import { Observable } from 'rxjs'
-import defaultEvents from './events'
+import { Observable, Subject, BehaviorSubject } from 'rxjs'
+import events from './events'
 
-const toVariablesObservable = variables =>
-  variables.length
-    ? all(
-        variables.map(
-          variable =>
-            Array.isArray(variable)
-              ? all(variable.map(toObservable)).map(htmlStrings => htmlStrings.join(''))
-              : toObservable(variable)
-        )
-      )
-    : Observable.of([])
+// data Variable a = a | Observable (Variable a) | Array (Variable a)
 
+// toAStream :: Variable a -> Observable a
+const toAStream = variable =>
+  Array.isArray(variable)
+    ? all(variable.map(toAStream)).map(strings => strings.join(''))
+    : variable instanceof Observable ? variable.switchMap(toAStream) : toObservable(variable)
+
+// toVariablesObservable :: [Variable a] -> Observable [a]
+const toVariablesObservable = variables => all(variables.map(toAStream))
+
+// html :: [String] -> ...[Variable a] -> Observable String
 const html = (strings, ...variables) =>
   toVariablesObservable(variables).map(variables => orderFragments(strings, ...variables).join(''))
 
@@ -24,19 +23,7 @@ const render = (component, element) =>
   component.sample(raf).forEach(html => {
     const clone = element.cloneNode()
     clone.innerHTML = html
-    morphdom(element, clone, {
-      onBeforeElUpdated(sourceEl, targetEl) {
-        defaultEvents.forEach(eventName => {
-          if (targetEl[eventName]) {
-            // if new element has a whitelisted attribute update existing element
-            sourceEl[eventName] = targetEl[eventName]
-          } else if (sourceEl[eventName]) {
-            // if existing element has it and new one doesnt remove it from existing element
-            sourceEl[eventName] = undefined
-          }
-        })
-      },
-    })
+    morphdom(element, clone)
   })
 
 const uniqueId = (() => {
@@ -47,15 +34,20 @@ const uniqueId = (() => {
 const handler = (() => {
   const listeners = []
 
-  window.trigger = (e, listenerId) => {
-    listeners.filter(({ id }) => id === listenerId).forEach(({ f }) => f(e))
-  }
+  events.forEach(name => {
+    window.document.body.addEventListener(name, e => {
+      const listenerId = e.target.getAttribute(`data-on${name}`)
+      if (listenerId) {
+        listeners.filter(({ id }) => id === parseInt(listenerId)).forEach(({ f }) => f(e))
+      }
+    })
+  })
 
   return f => {
     const id = uniqueId()
     listeners.push({ f, id })
-    return `trigger(event, ${id})`
+    return `${id}`
   }
 })()
 
-export { html, render, listen, handler }
+export { html, render, listen, handler, Observable, Subject, BehaviorSubject }
