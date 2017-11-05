@@ -2,7 +2,7 @@ import morphdom from 'morphdom'
 import copyEvents from 'copy-event-attributes'
 import bel from 'bel'
 import { Observable, Subject, BehaviorSubject } from 'rxjs'
-import { toObservable, listen, all } from './utils/observables'
+import { toObservable, listen, all, raf } from './utils/observables'
 import { zip } from './utils/arrays'
 import events from './events'
 
@@ -12,7 +12,9 @@ import events from './events'
 const toAStream = variable =>
   Array.isArray(variable)
     ? all(variable.map(toAStream))
-    : variable instanceof Observable ? variable.switchMap(toAStream) : toObservable(variable)
+    : variable instanceof Observable
+      ? variable.switchMap(toAStream)
+      : toObservable(variable)
 
 // html :: [String] -> ...[Variable a] -> Observable String
 const html = (strings, ...variables) =>
@@ -24,7 +26,7 @@ const html = (strings, ...variables) =>
 
 // render :: Observable String -> DOMElement -> ()
 const render = (component, element) =>
-  component.forEach(dom => {
+  component.sample(raf).forEach(dom => {
     if (element.firstChild) {
       morphdom(element.firstChild, dom, { onBeforeMorphEl: copyEvents })
     } else {

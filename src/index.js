@@ -92,7 +92,7 @@ const Todo = ({ todo }) => {
   }
 
   return html`
-    <li onclick=${onToggle}>
+    <li>
       ${todo.isEditing
         ? html`
             <input
@@ -100,7 +100,10 @@ const Todo = ({ todo }) => {
               oninput=${onInput}
               onkeydown=${onKeyDown} />
           `
-        : todo.text}
+        : html`
+            <span onclick=${onToggle}>${todo.text}</span>
+          `
+      }
     </li>
   `
 }
