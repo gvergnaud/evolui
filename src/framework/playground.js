@@ -1,6 +1,3 @@
-
-
-
 const mapValues = (mapper, obj) =>
   Object.keys(obj).reduce((acc, k) => ({ [k]: mapper(obj[k], k) }), {})
 

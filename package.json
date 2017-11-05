@@ -21,9 +21,8 @@
     "sagui": "^10.0.1"
   },
   "dependencies": {
-    "bel": "^5.0.3",
-    "copy-event-attributes": "^1.0.1",
-    "morphdom": "^2.3.3",
-    "rxjs": "^5.4.3"
+    "hyperx": "^2.3.2",
+    "rxjs": "^5.4.3",
+    "virtual-dom": "^2.1.1"
   }
 }

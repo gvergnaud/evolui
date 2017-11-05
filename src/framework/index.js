@@ -1,10 +1,10 @@
-import morphdom from 'morphdom'
-import copyEvents from 'copy-event-attributes'
-import bel from 'bel'
+import hyperx from 'hyperx'
+import vdom, { diff, patch } from 'virtual-dom'
+import createElement from 'virtual-dom/create-element'
 import { Observable, Subject, BehaviorSubject } from 'rxjs'
 import { toObservable, listen, all, raf } from './utils/observables'
-import { zip } from './utils/arrays'
-import events from './events'
+
+const hx = hyperx(vdom.h)
 
 // data Variable a = a | Observable (Variable a) | [Variable a]
 
@@ -16,22 +16,27 @@ const toAStream = variable =>
       ? variable.switchMap(toAStream)
       : toObservable(variable)
 
-// html :: [String] -> ...[Variable a] -> Observable String
+// html :: [VirtualDOM] -> ...[Variable a] -> Observable VirtualDOM
 const html = (strings, ...variables) =>
-  toAStream(variables).map(variables => {
-      console.log(zip(strings, variables))
-      return bel(strings, ...variables)
-  })
+  toAStream(variables).map(variables => hx(strings, ...variables))
 
 
-// render :: Observable String -> DOMElement -> ()
-const render = (component, element) =>
-  component.sample(raf).forEach(dom => {
-    if (element.firstChild) {
-      morphdom(element.firstChild, dom, { onBeforeMorphEl: copyEvents })
+// render :: Observable VirtualDOM -> DOMElement -> ()
+const render = (component, element) => {
+  let tree
+  let rootNode
+
+  return component.sample(raf).forEach(newTree => {
+    if (!tree) {
+      rootNode = createElement(newTree)
+      element.appendChild(rootNode)
     } else {
-      element.appendChild(dom)
+      const patches = diff(tree, newTree)
+      rootNode = patch(rootNode, patches)
     }
+
+    tree = newTree
   })
+}
 
 export { html, render, listen, Observable, Subject, BehaviorSubject }
