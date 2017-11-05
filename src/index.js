@@ -1,5 +1,4 @@
-import { listen, html, render, handler } from './framework'
-import { all } from './framework/utils/observables'
+import { html, render, handler } from './framework'
 import { Observable } from 'rxjs'
 import createStore from './createStore'
 
@@ -74,8 +73,8 @@ const InputBar = () => {
   return html`
     <input
       value="${store.state.map(({ text }) => text)}"
-      data-oninput="${handler(onInput)}"
-      data-onkeydown="${handler(onKeyDown)}" />
+      oninput=${onInput}
+      onkeydown=${onKeyDown} />
   `
 }
 
@@ -93,13 +92,13 @@ const Todo = ({ todo }) => {
   }
 
   return html`
-    <li data-onclick="${handler(onToggle)}">
+    <li onclick=${onToggle}>
       ${todo.isEditing
         ? html`
             <input
               value="${todo.text}"
-              data-oninput="${handler(onInput)}"
-              data-onkeydown="${handler(onKeyDown)}" />
+              oninput=${onInput}
+              onkeydown=${onKeyDown} />
           `
         : todo.text}
     </li>
@@ -116,6 +115,10 @@ const App = () => html`
   <div>
     ${Ticker()}
     ${InputBar()}
+
+    <button onclick=${function named() {
+      console.log('test')
+    }}>clocl</button>
 
     ${store.state.switchMap(({ todos }) => TodoList({ todos }))}
 

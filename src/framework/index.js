@@ -1,29 +1,32 @@
 import morphdom from 'morphdom'
 import { toObservable, raf, listen, all } from './utils/observables'
-import { orderFragments } from './utils/strings'
 import { Observable, Subject, BehaviorSubject } from 'rxjs'
 import events from './events'
+import bel from 'bel'
 
-// data Variable a = a | Observable (Variable a) | Array (Variable a)
+const log = (x, label = '') => (console.log(label, x), x)
+// data Variable a = a | Observable (Variable a) | [Variable a]
 
 // toAStream :: Variable a -> Observable a
 const toAStream = variable =>
   Array.isArray(variable)
-    ? all(variable.map(toAStream)).map(strings => strings.join(''))
+    ? all(variable.map(toAStream))
     : variable instanceof Observable ? variable.switchMap(toAStream) : toObservable(variable)
-
-// toVariablesObservable :: [Variable a] -> Observable [a]
-const toVariablesObservable = variables => all(variables.map(toAStream))
 
 // html :: [String] -> ...[Variable a] -> Observable String
 const html = (strings, ...variables) =>
-  toVariablesObservable(variables).map(variables => orderFragments(strings, ...variables).join(''))
+  toAStream(variables).map(variables => bel(strings, ...log(variables)))
 
+// render :: Observable String -> DOMElement -> ()
 const render = (component, element) =>
-  component.sample(raf).forEach(html => {
-    const clone = element.cloneNode()
-    clone.innerHTML = html
-    morphdom(element, clone)
+  component.sample(raf).forEach(dom => {
+    if (element.firstChild) {
+      const clone = element.firstChild.cloneNode()
+      clone.innerHTML = dom.innerHTML
+      morphdom(element.firstChild, clone)
+    } else {
+      element.appendChild(dom)
+    }
   })
 
 const uniqueId = (() => {
