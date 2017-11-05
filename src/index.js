@@ -1,4 +1,4 @@
-import { html, render, handler } from './framework'
+import { html, render } from './framework'
 import { Observable } from 'rxjs'
 import createStore from './createStore'
 
@@ -78,7 +78,7 @@ const InputBar = () => {
   `
 }
 
-const Ticker = () => Observable.interval(1000).startWith(0).switchMap(n => html`<span>${n}</span>`)
+const Ticker = () => Observable.interval(2000).startWith(0).switchMap(n => html`<span>${n}</span>`)
 
 const Todo = ({ todo }) => {
   const onToggle = () => store.dispatch({ type: 'TOGGLE_EDIT_TODO', id: todo.id })
@@ -116,18 +116,7 @@ const App = () => html`
     ${Ticker()}
     ${InputBar()}
 
-    <button onclick=${function named() {
-      console.log('test')
-    }}>clocl</button>
-
     ${store.state.switchMap(({ todos }) => TodoList({ todos }))}
-
-    ${store.state.switchMap(
-      ({ todos }) =>
-        html`
-          ${todos.length % 2 ? TodoList({ todos }) : ''}
-        `
-    )}
   </div>
 `
 
