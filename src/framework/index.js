@@ -3,6 +3,7 @@ import vdom, { diff, patch } from 'virtual-dom'
 import createElement from 'virtual-dom/create-element'
 import { Observable, Subject, BehaviorSubject } from 'rxjs'
 import { toObservable, listen, all, raf } from './utils/observables'
+import createStore from './createStore'
 
 const hx = hyperx(vdom.h)
 
@@ -12,9 +13,8 @@ const hx = hyperx(vdom.h)
 const toAStream = variable =>
   Array.isArray(variable)
     ? all(variable.map(toAStream))
-    : variable instanceof Observable
-      ? variable.switchMap(toAStream)
-      : toObservable(variable)
+    : variable instanceof Observable ? variable.switchMap(toAStream) : toObservable(variable)
+
 
 // html :: [VirtualDOM] -> ...[Variable a] -> Observable VirtualDOM
 const html = (strings, ...variables) =>
@@ -39,4 +39,4 @@ const render = (component, element) => {
   })
 }
 
-export { html, render, listen, Observable, Subject, BehaviorSubject }
+export { html, render, listen, createStore, Observable, Subject, BehaviorSubject }

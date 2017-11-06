@@ -1,6 +1,5 @@
-import { html, render } from './framework'
+import { html, render, listen, createStore } from './framework'
 import { Observable } from 'rxjs'
-import createStore from './createStore'
 
 // const mouse$ = listen(window, 'mousemove')
 //   .map(({ clientX: x, clientY: y }) => ({ x, y }))
@@ -63,6 +62,22 @@ const reducer = (state, action) => {
 
 const store = createStore(reducer, initialState)
 
+
+const mouse = listen(window, 'mousemove')
+  .map(e => ({
+    x: e.clientX,
+    y: e.clientY
+  }))
+  .startWith({ x: 0, y: 0 })
+
+
+const MouseTracker = () => html`
+  <div>
+    <span>x: ${mouse.map(({ x }) => x)}</span>
+    <span>y: ${mouse.map(({ y }) => y)}</span>
+  </div>
+`
+
 const InputBar = () => {
   const onKeyDown = e => {
     if (e.which === 13) store.dispatch({ type: 'ADD_TODO', text: e.target.value })
@@ -118,7 +133,7 @@ const App = () => html`
   <div>
     ${Ticker()}
     ${InputBar()}
-
+    ${MouseTracker()}
     ${store.state.switchMap(({ todos }) => TodoList({ todos }))}
   </div>
 `
