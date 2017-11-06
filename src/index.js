@@ -93,7 +93,7 @@ const InputBar = () => {
   `
 }
 
-const Ticker = () => Observable.interval(2000).startWith(0).switchMap(n => html`<span>${n}</span>`)
+const Ticker = () => Observable.interval(1000).startWith(0).switchMap(n => html`<span>${n}</span>`)
 
 const Todo = ({ todo }) => {
   const onToggle = () => store.dispatch({ type: 'TOGGLE_EDIT_TODO', id: todo.id })
