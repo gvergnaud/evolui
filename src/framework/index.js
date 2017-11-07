@@ -16,7 +16,7 @@ const toAStream = variable =>
     : variable instanceof Observable ? variable.switchMap(toAStream) : toObservable(variable)
 
 
-// html :: [VirtualDOM] -> ...[Variable a] -> Observable VirtualDOM
+// html :: [String] -> ...[Variable a] -> Observable VirtualDOM
 const html = (strings, ...variables) =>
   toAStream(variables).map(variables => hx(strings, ...variables))
 
