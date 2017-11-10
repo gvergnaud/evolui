@@ -25,7 +25,7 @@ const Todo = ({ todo }) => {
                 onkeydown=${onKeyDown} />
             `
           : html`
-              <span ondbclick=${onToggle}>${todo.text}</span>
+              <span onclick=${onToggle}>${todo.text}</span>
             `
       }
       <button onclick=${onRemove}>X</button>
