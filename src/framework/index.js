@@ -13,7 +13,9 @@ const hx = hyperx(vdom.h)
 const toAStream = variable =>
   Array.isArray(variable)
     ? all(variable.map(toAStream))
-    : variable instanceof Observable ? variable.switchMap(toAStream) : toObservable(variable)
+    : variable instanceof Observable
+      ? variable.switchMap(toAStream).startWith('')
+      : toObservable(variable).startWith('')
 
 
 // html :: [String] -> ...[Variable a] -> Observable VirtualDOM

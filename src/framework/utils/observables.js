@@ -1,6 +1,17 @@
 import { Observable } from 'rxjs'
 
-export const toObservable = x => (x instanceof Observable ? x : Observable.of(x))
+
+export const fromPromise = p => new Observable(observer => {
+  p.then(x => observer.next(x))
+})
+
+export const toObservable = x => (
+  x instanceof Observable
+    ? x
+    : x instanceof Promise
+      ? fromPromise(x)
+      : Observable.of(x)
+)
 
 export const listen = (element, event) =>
   new Observable(observer => {
