@@ -1,7 +1,18 @@
-import {html} from '../framework'
-import store, {UPDATE_TODO, TOGGLE_EDIT_TODO, REMOVE_TODO} from '../store'
+import html from '../html'
+import store, {
+  UPDATE_TODO,
+  TOGGLE_EDIT_TODO,
+  STOP_EDIT_TODO,
+  REMOVE_TODO,
+  TOGGLE_TODO
+} from '../store'
 
 const Todo = ({ todo }) => {
+  const onToggleComplete = () =>
+    store.dispatch({ type: TOGGLE_TODO, id: todo.id })
+
+  const onStopEdit = () => store.dispatch({ type: STOP_EDIT_TODO, id: todo.id })
+
   const onToggle = () => store.dispatch({ type: TOGGLE_EDIT_TODO, id: todo.id })
 
   const onInput = e => {
@@ -9,7 +20,7 @@ const Todo = ({ todo }) => {
   }
 
   const onKeyDown = e => {
-    if (e.which === 13) onToggle()
+    if (e.which === 13) onStopEdit()
   }
 
   const onRemove = () => store.dispatch({ type: REMOVE_TODO, id: todo.id })
@@ -20,12 +31,21 @@ const Todo = ({ todo }) => {
         todo.isEditing
           ? html`
               <input
+                autofocus
                 value="${todo.text}"
                 oninput=${onInput}
-                onkeydown=${onKeyDown} />
+                onkeydown=${onKeyDown}
+                onblur=${onStopEdit} />
             `
           : html`
-              <span onclick=${onToggle}>${todo.text}</span>
+              <span
+                ondblclick=${onToggle}
+                onclick=${onToggleComplete}
+                style="text-decoration: ${
+                  todo.isComplete ? 'line-through' : 'none'
+                };">
+                ${todo.text}
+                </span>
             `
       }
       <button onclick=${onRemove}>X</button>

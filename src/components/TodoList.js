@@ -1,4 +1,4 @@
-import {html} from '../framework'
+import html from '../html'
 import Todo from './Todo'
 
 const TodoList = ({ todos }) => html`

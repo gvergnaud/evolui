@@ -1,4 +1,5 @@
-import {listen, html} from '../framework'
+import html from '../html'
+import { listen } from '../utils/observables'
 
 const mouse = listen(window, 'mousemove')
   .map(e => ({
@@ -6,7 +7,6 @@ const mouse = listen(window, 'mousemove')
     y: e.clientY
   }))
   .startWith({ x: 0, y: 0 })
-
 
 const MouseTracker = () => html`
   <div>

@@ -1,6 +1,5 @@
-import {Observable} from 'rxjs'
+import html from '../html'
 import store from '../store'
-import {html} from '../framework'
 
 import Ticker from './Ticker'
 import InputBar from './InputBar'
