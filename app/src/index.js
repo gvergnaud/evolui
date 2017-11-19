@@ -1,4 +1,5 @@
 import { render } from './framework'
 import App from './components/App'
 
-render(App(), document.querySelector('#root'))
+render(new App({ name: 'Sunshine' }),
+  document.querySelector('main'));
