@@ -1,8 +1,6 @@
 import hyperx from 'hyperx'
-import { isEqual } from 'lodash'
 import { h, diff, patch } from 'virtual-dom'
-import createElement from 'virtual-dom/create-element'
-import createStore from './createStore'
+import createElement from 'virtual-dom/createElement'
 import { createOperators, createRaf } from './utils/observables'
 
 const hx = hyperx(h)
@@ -57,5 +55,4 @@ const render = (component, element) => {
 }
 
 export default createHtml
-
-export { html, render, createStore }
+export { render }
