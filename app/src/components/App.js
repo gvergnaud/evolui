@@ -1,20 +1,35 @@
-import html from '../html'
-import store from '../store'
+import { Observable } from 'rxjs';
+import { html, CreateElement, CreateTextNode, CloseElement } from '../framework';
 
-import Ticker from './Ticker'
-import InputBar from './InputBar'
-import MouseTracker from './MouseTracker'
-import TodoList from './TodoList'
-import Pokemon from './Pokemon'
+// const World = () => {
+//   return html([
+//     [
+//       new CreateTextNode('World'),
+//     ],
+//   ]);
+// };
 
-const App = () => html`
-  <div>
-    ${Pokemon()}
-    ${Ticker()}
-    ${InputBar()}
-    ${MouseTracker()}
-    ${store.state.switchMap(({ todos }) => TodoList({ todos }))}
-  </div>
-`
-
-export default App
+export default () => {
+  return html([
+    [
+      new CreateElement('h1'),
+      new CreateTextNode('Hello '),
+    ],
+    [
+      new CloseElement(),
+    ],
+  // ], World());
+  ], new Observable(sink => {
+    sink.next('.');
+    let handle = setTimeout(() => {
+      sink.next('..');
+      handle = setTimeout(() => {
+        sink.next('...');
+        handle = setTimeout(() => {
+          sink.next('World!');
+        }, 1000);
+      }, 1000);
+    }, 1000);
+    return () => clearTimeout(handle);
+  }));
+};

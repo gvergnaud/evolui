@@ -1,60 +1,113 @@
-import hyperx from 'hyperx'
-import { h, diff, patch } from 'virtual-dom'
-import createElement from 'virtual-dom/create-element'
-import createStore from './createStore'
-import { createOperators, createRaf } from './utils/observables'
+import { Observable } from 'rxjs';
 
-const hx = hyperx(h)
-
-const createHtml = Observable => {
-  const {
-    pipe,
-    compose,
-    map,
-    startWith,
-    toObservable,
-    all,
-    switchMap,
-    sample
-  } = createOperators(Observable)
-  const raf = createRaf(Observable)
-
-  // data Variable a = a | Observable (Variable a) | [Variable a]
-  // toAStream :: Variable a -> Observable a
-  const toAStream = variable =>
-    Array.isArray(variable)
-      ? all(variable.map(toAStream))
-      : variable instanceof Observable
-        ? compose(startWith(''), switchMap(toAStream))(variable)
-        : compose(startWith(''), toObservable)(variable)
-
-  // html :: [String] -> ...[Variable a] -> Observable VirtualDOM
-  const html = (strings, ...variables) =>
-    pipe(toAStream, map(variables => hx(strings, ...variables)), sample(raf))(
-      variables
-    )
-
-  return html
+export class CreateElement {
+  constructor(name) {
+    this.name = name;
+  }
 }
 
-// render :: Observable VirtualDOM -> DOMElement -> Subscription
-const render = (component, element) => {
-  let tree
-  let rootNode
+export class CreateTextNode {
+  constructor(content) {
+    this.content = content;
+  }
+}
 
-  return component.forEach(newTree => {
-    if (!tree) {
-      rootNode = createElement(newTree)
-      element.appendChild(rootNode)
-    } else {
-      const patches = diff(tree, newTree)
-      rootNode = patch(rootNode, patches)
+export class UpdateTextNode {
+  constructor(content) {
+    this.content = content;
+  }
+}
+
+export class ReplaceByTextNode {
+  constructor(content) {
+    this.content = content;
+  }
+}
+
+export class RemoveTextNode {}
+
+export class CloseElement {}
+
+export class Variable {}
+
+const interpret = (op, node) => {
+  switch (op.constructor) {
+    case CreateElement: {
+      const element = document.createElement(op.name);
+      return {
+        node: node instanceof HTMLElement
+          ? node.appendChild(element)
+          : node.insertBefore(element, node.nextSibling)
+      };
     }
+    case CreateTextNode: {
+      const element = node instanceof HTMLElement
+        ? node : node.parentElement;
+      return {
+        node: element.appendChild(
+          document.createTextNode(op.content)),
+      };
+    }
+    case UpdateTextNode:
+      node.textContent = op.content;
+      return { node };
+    case ReplaceByTextNode:
+      const x = document.createTextNode(op.content)
+      node.parentElement.replaceChild(x, node);
+      return { node: x };
+    case RemoveTextNode:
+      node.parentElement.removeChild(node);
+      return { node: node.parentElement };
+    case CloseElement:
+      return { node: node.parentElement };
+    case Variable:
+      const value = function* () {
+        let current = node;
+        while (true) {
+          const { node, value } = interpret(yield, current);
+          current = node;
+          if (value && typeof value[Symbol.iterator] === 'function') {
+            render(value, element);
+          }
+        }
+      }();
+      value.next();
+      return { node, value };
+  }
+};
 
-    tree = newTree
-  })
-}
+export const render = (ops, element) => {
+  const fragment = document.createDocumentFragment();
+  let state = { node: fragment };
+  for (let res = ops.next(); !res.done; res = ops.next(state.value)) {
+    state = interpret(res.value, state.node);
+  }
+  element.appendChild(fragment);
+};
 
-export default createHtml
-
-export { html, render, createStore }
+export const html = function* (fragments, ...variables) {
+  for (const [index, fragment] of fragments.entries()) {
+    yield* fragment;
+    const variable = variables[index];
+    if (variable) {
+      const handle = yield new Variable();
+      Observable.from(variable)
+        .scan(([prev], value) => [value, prev], [])
+        .subscribe({
+          next: ([value, prev]) => {
+            if (typeof value === 'string' || value instanceof String) {
+              if (prev === undefined) handle.next(new CreateTextNode(value));
+              else if (value === undefined) handle.next(new RemoveTextNode());
+              else if (typeof prev === 'string' || prev instanceof String) {
+                handle.next(new UpdateTextNode(value));
+              } else handle.next(new ReplaceByTextNode(value));
+            } else {
+              handle.next(value);
+            }
+          },
+          error: handle.throw.bind(handle),
+          complete: handle.return.bind(handle),
+        });
+    }
+  }
+};
