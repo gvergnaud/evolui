@@ -1,7 +1,11 @@
+import { curry } from 'lodash/fp'
+
 const Nothing = 'Nothing'
 
 const init = xs => xs.slice(0, xs.length - 1)
 const last = xs => xs[xs.length - 1]
+const compose = (...fns) => x => fns.reduceRight((value, f) => f(value), x)
+const pipe = (...fs) => fs.reduce((acc, f) => x => f(acc(x)), x => x)
 
 export const createOperators = Observable => {
   const fromPromise = p =>
@@ -14,11 +18,13 @@ export const createOperators = Observable => {
       ? x
       : x instanceof Promise ? fromPromise(x) : Observable.of(x)
 
-  const startWith = (stream, initalValue) =>
-    new Observable(observer => {
-      observer.next(initalValue)
-      return stream.subscribe(observer)
-    })
+  const startWith = curry(
+    (initalValue, stream) =>
+      new Observable(observer => {
+        observer.next(initalValue)
+        return stream.subscribe(observer)
+      })
+  )
 
   const combineLatest = (...xs) => {
     const observables = init(xs)
@@ -43,8 +49,7 @@ export const createOperators = Observable => {
               try {
                 result = combiner(...values)
               } catch (err) {
-                observer.error(err)
-                return
+                console.error(err)
               }
               observer.next(result)
             }
@@ -60,7 +65,17 @@ export const createOperators = Observable => {
     })
   }
 
-  const switchMap = (stream, switchMapper) => {
+  const map = curry((mapper, stream) => {
+    return new Observable(observer =>
+      stream.subscribe({
+        error: e => observer.error(e),
+        next: x => observer.next(mapper(x)),
+        complete: () => observer.complete()
+      })
+    )
+  })
+
+  const switchMap = curry((switchMapper, stream) => {
     let subscription
 
     return new Observable(observer =>
@@ -77,17 +92,73 @@ export const createOperators = Observable => {
         complete: () => observer.complete()
       })
     )
-  }
+  })
+
+  const sample = curry((sampleStream, stream) => {
+    var none = Symbol('None')
+    return new Observable(observer => {
+      let latestValue = none
+      const sub = stream.subscribe({
+        next: value => {
+          latestValue = value
+        },
+        complete: () => {},
+        error: err => observer.error(err)
+      })
+
+      const sampleSub = sampleStream.subscribe({
+        next: () => {
+          if (latestValue !== none) {
+            observer.next(latestValue)
+            latestValue = none
+          }
+        },
+        complete: () => observer.complete(),
+        error: err => observer.error(err)
+      })
+
+      return {
+        unsubscribe: () => {
+          sub.unsubscribe()
+          sampleSub.unsubscribe()
+        }
+      }
+    })
+  })
 
   const all = obs =>
     obs.length ? combineLatest(...obs, (...xs) => xs) : Observable.of([])
 
   return {
+    sample,
+    map,
     switchMap,
     all,
     combineLatest,
     startWith,
     toObservable,
-    fromPromise
+    fromPromise,
+    compose,
+    pipe
   }
 }
+
+export const createRaf = Observable =>
+  new Observable(observer => {
+    let isSubscribed = true
+
+    const loop = () => {
+      if (isSubscribed) {
+        observer.next()
+        window.requestAnimationFrame(loop)
+      }
+    }
+
+    window.requestAnimationFrame(loop)
+
+    return {
+      unsubscribe: () => {
+        isSubscribed = false
+      }
+    }
+  })

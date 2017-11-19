@@ -1,68 +1,59 @@
 import hyperx from 'hyperx'
-import vdom, { diff, patch } from 'virtual-dom'
+import { isEqual } from 'lodash'
+import { h, diff, patch } from 'virtual-dom'
 import createElement from 'virtual-dom/create-element'
 import createStore from './createStore'
-import { createOperators } from './utils/observables'
+import { createOperators, createRaf } from './utils/observables'
 
-const hx = hyperx(vdom.h)
+const hx = hyperx(h)
 
 const createHtml = Observable => {
-  const { startWith, toObservable, all, switchMap } = createOperators(
-    Observable
-  )
+  const {
+    pipe,
+    compose,
+    map,
+    startWith,
+    toObservable,
+    all,
+    switchMap,
+    sample
+  } = createOperators(Observable)
+  const raf = createRaf(Observable)
 
   // data Variable a = a | Observable (Variable a) | [Variable a]
-
   // toAStream :: Variable a -> Observable a
   const toAStream = variable =>
     Array.isArray(variable)
       ? all(variable.map(toAStream))
       : variable instanceof Observable
-        ? startWith(switchMap(variable, toAStream), '')
-        : startWith(toObservable(variable), '')
+        ? compose(startWith(''), switchMap(toAStream))(variable)
+        : compose(startWith(''), toObservable)(variable)
 
   // html :: [String] -> ...[Variable a] -> Observable VirtualDOM
   const html = (strings, ...variables) =>
-    toAStream(variables).map(variables => hx(strings, ...variables))
+    pipe(toAStream, map(variables => hx(strings, ...variables)), sample(raf))(
+      variables
+    )
 
   return html
 }
 
-function requestAnimationFrameThrottle(f) {
-  let shouldExecute = true
-  let args = []
-
-  return (...xs) => {
-    args = xs
-
-    if (!shouldExecute) return
-    shouldExecute = false
-
-    window.requestAnimationFrame(() => {
-      shouldExecute = true
-      f.apply(f, args)
-    })
-  }
-}
-
-// render :: Observable VirtualDOM -> DOMElement -> ()
+// render :: Observable VirtualDOM -> DOMElement -> Subscription
 const render = (component, element) => {
   let tree
   let rootNode
 
-  return component.forEach(
-    requestAnimationFrameThrottle(newTree => {
-      if (!tree) {
-        rootNode = createElement(newTree)
-        element.appendChild(rootNode)
-      } else {
-        const patches = diff(tree, newTree)
-        rootNode = patch(rootNode, patches)
-      }
+  return component.forEach(newTree => {
+    if (!tree) {
+      rootNode = createElement(newTree)
+      element.appendChild(rootNode)
+    } else {
+      const patches = diff(tree, newTree)
+      rootNode = patch(rootNode, patches)
+    }
 
-      tree = newTree
-    })
-  )
+    tree = newTree
+  })
 }
 
 export default createHtml

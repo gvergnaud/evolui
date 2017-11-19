@@ -26,7 +26,9 @@ export class Observable {
 
   static from(x) {
     if (x['Symbol.observable'])
-      return new Observable(observer => x['Symbol.observable']().subscribe(observer))
+      return new Observable(observer =>
+        x['Symbol.observable']().subscribe(observer)
+      )
     if (x[Symbol.iterator]) return Observable.of(...x)
   }
 
@@ -45,7 +47,7 @@ export class Observable {
           next: x => {
             values[index] = x
             observer.next(values)
-          },
+          }
         })
       )
 
@@ -62,15 +64,15 @@ export class Observable {
   }
 
   static combineLatestObject(observables) {
-    const entriesObservables = Object.entries(observables).map(([key, observable]) =>
-      observable.map(value => [key, value])
+    const entriesObservables = Object.entries(observables).map(
+      ([key, observable]) => observable.map(value => [key, value])
     )
 
     return Observable.combineLatest(...entriesObservables, (...entries) =>
       entries.reduce(
         (acc, [key, value]) =>
           Object.assign({}, acc, {
-            [key]: value,
+            [key]: value
           }),
         {}
       )
@@ -108,7 +110,7 @@ export class Observable {
     const subscription = this._subscribe({
       next: gardNext(next),
       complete: gardComplete(complete),
-      error: gardError(error),
+      error: gardError(error)
     })
 
     return subscription || { unsubscribe: () => {} }
@@ -119,7 +121,7 @@ export class Observable {
       this.subscribe({
         error: reject,
         complete: resolve,
-        next: f,
+        next: f
       })
     )
   }
@@ -132,7 +134,7 @@ export class Observable {
           f(x)
           observer.next(x)
         },
-        complete: observer.complete,
+        complete: observer.complete
       })
     )
   }
@@ -144,7 +146,7 @@ export class Observable {
         next: x => {
           if (predicate(x)) observer.next(x)
         },
-        complete: () => observer.complete,
+        complete: () => observer.complete
       })
     )
   }
@@ -154,7 +156,7 @@ export class Observable {
       this._subscribe({
         error: observer.error,
         next: compose(observer.next, mapper),
-        complete: compose(observer.complete, mapper),
+        complete: compose(observer.complete, mapper)
       })
     )
   }
@@ -166,10 +168,10 @@ export class Observable {
           chainer(x).subscribe({
             error: observer.error,
             next: observer.next,
-            complete: observer.complete,
+            complete: observer.complete
           }),
         error: observer.error,
-        complete: observer.complete,
+        complete: observer.complete
       })
     )
   }
@@ -184,11 +186,11 @@ export class Observable {
           subscription = switchMapper(x).subscribe({
             error: observer.error,
             next: observer.next,
-            complete: observer.complete,
+            complete: observer.complete
           })
         },
         error: observer.error,
-        complete: observer.complete,
+        complete: observer.complete
       })
     )
   }
@@ -211,7 +213,7 @@ export class Observable {
       this._subscribe({
         error: observer.error,
         next: compose(observer.next, scanValue),
-        complete: observer.complete,
+        complete: observer.complete
       })
     )
   }
@@ -236,14 +238,14 @@ export class Observable {
         },
         next: v => {
           value = v
-        },
+        }
       })
 
       return {
         unsubscribe: () => {
           sampleSubscription.unsubscribe()
           subscription.unsubscribe()
-        },
+        }
       }
     })
   }
@@ -259,7 +261,7 @@ export class Observable {
         subscription = this._subscribe({
           next: x => observers.forEach(o => o.next(x)),
           complete: () => observers.forEach(o => o.complete()),
-          error: x => observers.forEach(o => o.error(x)),
+          error: x => observers.forEach(o => o.error(x))
         })
       }
 
@@ -269,7 +271,7 @@ export class Observable {
           if (observers.length === 0) {
             subscription.unsubscribe()
           }
-        },
+        }
       }
     })
   }

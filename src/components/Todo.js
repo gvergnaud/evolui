@@ -45,7 +45,7 @@ const Todo = ({ todo }) => {
                   todo.isComplete ? 'line-through' : 'none'
                 };">
                 ${todo.text}
-                </span>
+              </span>
             `
       }
       <button onclick=${onRemove}>X</button>
