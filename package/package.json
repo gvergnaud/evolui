@@ -1,16 +1,17 @@
 {
   "name": "evolui",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "lib/evolui.js",
   "scripts": {
     "clean": "rimraf lib",
-    "build": "rollup --config rollup.config.js",
+    "build": "npm run clean && rollup --config rollup.config.js",
     "prepublish": "npm run clean && npm run build"
   },
   "author": "Gabriel Vergnaud <github.com/gvergnaud>",
   "license": "ISC",
   "dependencies": {
+    "hyperx": "^2.3.2",
     "virtual-dom": "^2.1.1"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 import hyperx from 'hyperx'
 import { h, diff, patch } from 'virtual-dom'
-import createElement from 'virtual-dom/createElement'
+import createElement from 'virtual-dom/create-element'
 import { createOperators, createRaf } from './utils/observables'
 
 const hx = hyperx(h)
