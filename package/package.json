@@ -6,7 +6,7 @@
   "scripts": {
     "clean": "rimraf lib",
     "build": "npm run clean && rollup --config rollup.config.js",
-    "prepublish": "npm run clean && npm run build"
+    "prepare": "npm run clean && npm run build"
   },
   "author": "Gabriel Vergnaud <github.com/gvergnaud>",
   "license": "ISC",
