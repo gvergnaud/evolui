@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs'
+import {Observable} from 'rxjs'
 import {
   CreateElement,
   CreateTextNode,
@@ -28,21 +28,21 @@ const interpret = (op, node) => {
     }
     case UpdateTextNode:
       node.textContent = op.content
-      return { node }
+      return {node}
     case ReplaceByTextNode:
       const x = document.createTextNode(op.content)
       node.parentElement.replaceChild(x, node)
-      return { node: x }
+      return {node: x}
     case RemoveTextNode:
       node.parentElement.removeChild(node)
-      return { node: node.parentElement }
+      return {node: node.parentElement}
     case CloseElement:
-      return { node: node.parentElement }
+      return {node: node.parentElement}
     case Variable:
       const value = (function*() {
         let current = node
         while (true) {
-          const { node, value } = interpret(yield, current)
+          const {node, value} = interpret(yield, current)
           current = node
           if (value && typeof value[Symbol.iterator] === 'function') {
             render(value, element)
@@ -50,13 +50,13 @@ const interpret = (op, node) => {
         }
       })()
       value.next()
-      return { node, value }
+      return {node, value}
   }
 }
 
 export const render = (ops, element) => {
   const fragment = document.createDocumentFragment()
-  let state = { node: fragment }
+  let state = {node: fragment}
   for (let res = ops.next(); !res.done; res = ops.next(state.value)) {
     state = interpret(res.value, state.node)
   }
