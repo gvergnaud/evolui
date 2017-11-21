@@ -10,7 +10,7 @@ const Token = {
   TagName: 'TagName'
 }
 
-const tokenizer = input => {
+export const tokenizer = input => {
   let current = 0
   const tokens = []
 
@@ -65,20 +65,15 @@ const tokenizer = input => {
       continue
     }
 
-    const LETTER = /[a-z0-9-]/i
+    const LETTER =
+      previousToken.type === Token.CloseCarret ? /[^<]/ : /[a-z0-9-]/i
+
     if (LETTER.test(char)) {
       let value = ''
 
-      if (previousToken.type === Token.CloseCarret) {
-        while (/[^<]/.test(char)) {
-          value += char
-          char = input[++current]
-        }
-      } else {
-        while (LETTER.test(char)) {
-          value += char
-          char = input[++current]
-        }
+      while (LETTER.test(char)) {
+        value += char
+        char = input[++current]
       }
 
       if (!previousToken) {
@@ -167,7 +162,7 @@ const tokenizer = input => {
   return tokens
 }
 
-const parser = tokens => tokens
+export const parser = tokens => tokens
 
 export default function parseFragment(htmlFragment) {
   return parser(tokenizer(htmlFragment))

@@ -1,77 +1,188 @@
 import expect from 'expect'
-import parseFragment from '../src/framework/parseFragment'
+import { tokenizer } from '../src/framework/parseFragment'
 import allHTMLAttributes from './allHTMLAttributes.json'
 
-describe('parseFragment', () => {
-  it('should successfully parse any tagName', () => {
-    expect(parseFragment('<')).toEqual([{type: 'OpenCarret', value: '<'}])
-    expect(parseFragment('>')).toEqual([{type: 'CloseCarret', value: '>'}])
-    expect(parseFragment('/>')).toEqual([
-      {type: 'SelfClosingTagCarret', value: '/>'}
-    ])
-    expect(parseFragment('</')).toEqual([
-      {type: 'ClosingTagCarret', value: '</'}
-    ])
+describe('tokenizer', () => {
+  const openTag = tagName => [
+    { type: 'OpenCarret', value: '<' },
+    { type: 'TagName', value: tagName },
+    { type: 'CloseCarret', value: '>' }
+  ]
 
-    expect(parseFragment('<div>')).toEqual([
-      {type: 'OpenCarret', value: '<'},
-      {type: 'TagName', value: 'div'},
-      {type: 'CloseCarret', value: '>'}
+  const closeTag = tagName => [
+    { type: 'ClosingTagCarret', value: '</' },
+    { type: 'TagName', value: tagName },
+    { type: 'CloseCarret', value: '>' }
+  ]
+
+  it('should successfully parse any tagName', () => {
+    expect(tokenizer('<')).toEqual([{ type: 'OpenCarret', value: '<' }])
+    expect(tokenizer('>')).toEqual([{ type: 'CloseCarret', value: '>' }])
+    expect(tokenizer('/>')).toEqual([
+      { type: 'SelfClosingTagCarret', value: '/>' }
+    ])
+    expect(tokenizer('</')).toEqual([{ type: 'ClosingTagCarret', value: '</' }])
+
+    expect(tokenizer('<div>')).toEqual([
+      { type: 'OpenCarret', value: '<' },
+      { type: 'TagName', value: 'div' },
+      { type: 'CloseCarret', value: '>' }
     ])
   })
 
   it('should successfully parse attributes tokens', () => {
-    expect(parseFragment('<div class="hello" />')).toEqual([
-      {type: 'OpenCarret', value: '<'},
-      {type: 'TagName', value: 'div'},
-      {type: 'AttrName', value: 'class'},
-      {type: 'Equal', value: '='},
-      {type: 'AttrValue', value: 'hello'},
-      {type: 'SelfClosingTagCarret', value: '/>'}
+    expect(tokenizer('<div class="hello" />')).toEqual([
+      { type: 'OpenCarret', value: '<' },
+      { type: 'TagName', value: 'div' },
+      { type: 'AttrName', value: 'class' },
+      { type: 'Equal', value: '=' },
+      { type: 'AttrValue', value: 'hello' },
+      { type: 'SelfClosingTagCarret', value: '/>' }
     ])
   })
 
   it('should parse any number of attributes', () => {
-    expect(parseFragment('<div class="hello" id="yes" />')).toEqual([
-      {type: 'OpenCarret', value: '<'},
-      {type: 'TagName', value: 'div'},
-      {type: 'AttrName', value: 'class'},
-      {type: 'Equal', value: '='},
-      {type: 'AttrValue', value: 'hello'},
-      {type: 'AttrName', value: 'id'},
-      {type: 'Equal', value: '='},
-      {type: 'AttrValue', value: 'yes'},
-      {type: 'SelfClosingTagCarret', value: '/>'}
+    expect(tokenizer('<div class="hello" id="yes" />')).toEqual([
+      { type: 'OpenCarret', value: '<' },
+      { type: 'TagName', value: 'div' },
+      { type: 'AttrName', value: 'class' },
+      { type: 'Equal', value: '=' },
+      { type: 'AttrValue', value: 'hello' },
+      { type: 'AttrName', value: 'id' },
+      { type: 'Equal', value: '=' },
+      { type: 'AttrValue', value: 'yes' },
+      { type: 'SelfClosingTagCarret', value: '/>' }
     ])
 
-    expect(
-      parseFragment('<div class="hello" id="yes" data-lol="cool" />')
-    ).toEqual([
-      {type: 'OpenCarret', value: '<'},
-      {type: 'TagName', value: 'div'},
-      {type: 'AttrName', value: 'class'},
-      {type: 'Equal', value: '='},
-      {type: 'AttrValue', value: 'hello'},
-      {type: 'AttrName', value: 'id'},
-      {type: 'Equal', value: '='},
-      {type: 'AttrValue', value: 'yes'},
-      {type: 'AttrName', value: 'data-lol'},
-      {type: 'Equal', value: '='},
-      {type: 'AttrValue', value: 'cool'},
-      {type: 'SelfClosingTagCarret', value: '/>'}
-    ])
+    expect(tokenizer('<div class="hello" id="yes" data-lol="cool" />')).toEqual(
+      [
+        { type: 'OpenCarret', value: '<' },
+        { type: 'TagName', value: 'div' },
+        { type: 'AttrName', value: 'class' },
+        { type: 'Equal', value: '=' },
+        { type: 'AttrValue', value: 'hello' },
+        { type: 'AttrName', value: 'id' },
+        { type: 'Equal', value: '=' },
+        { type: 'AttrValue', value: 'yes' },
+        { type: 'AttrName', value: 'data-lol' },
+        { type: 'Equal', value: '=' },
+        { type: 'AttrValue', value: 'cool' },
+        { type: 'SelfClosingTagCarret', value: '/>' }
+      ]
+    )
   })
 
   it('should parse all html attributes', () => {
     Object.values(allHTMLAttributes).forEach(attr => {
-      expect(parseFragment(`<div ${attr}="cool" />`)).toEqual([
-        {type: 'OpenCarret', value: '<'},
-        {type: 'TagName', value: 'div'},
-        {type: 'AttrName', value: attr},
-        {type: 'Equal', value: '='},
-        {type: 'AttrValue', value: 'cool'},
-        {type: 'SelfClosingTagCarret', value: '/>'}
+      expect(tokenizer(`<div ${attr}="cool" />`)).toEqual([
+        { type: 'OpenCarret', value: '<' },
+        { type: 'TagName', value: 'div' },
+        { type: 'AttrName', value: attr },
+        { type: 'Equal', value: '=' },
+        { type: 'AttrValue', value: 'cool' },
+        { type: 'SelfClosingTagCarret', value: '/>' }
       ])
     })
+  })
+
+  it('should parse nested HTML elements', () => {
+    expect(
+      tokenizer(`
+          <div lol="cool">
+            <h1>Hello</h1>
+            <div>
+                <p>How are you?</p>
+                <p>Pewewewe</p>
+            </div>
+          </div>
+      `)
+    ).toEqual([
+      { type: 'OpenCarret', value: '<' },
+      { type: 'TagName', value: 'div' },
+      { type: 'AttrName', value: 'lol' },
+      { type: 'Equal', value: '=' },
+      { type: 'AttrValue', value: 'cool' },
+      { type: 'CloseCarret', value: '>' },
+      { type: 'OpenCarret', value: '<' },
+      { type: 'TagName', value: 'h1' },
+      { type: 'CloseCarret', value: '>' },
+      { type: 'String', value: 'Hello' },
+      { type: 'ClosingTagCarret', value: '</' },
+      { type: 'TagName', value: 'h1' },
+      { type: 'CloseCarret', value: '>' },
+      { type: 'OpenCarret', value: '<' },
+      { type: 'TagName', value: 'div' },
+      { type: 'CloseCarret', value: '>' },
+      { type: 'OpenCarret', value: '<' },
+      { type: 'TagName', value: 'p' },
+      { type: 'CloseCarret', value: '>' },
+      { type: 'String', value: 'How are you?' },
+      { type: 'ClosingTagCarret', value: '</' },
+      { type: 'TagName', value: 'p' },
+      { type: 'CloseCarret', value: '>' },
+      { type: 'OpenCarret', value: '<' },
+      { type: 'TagName', value: 'p' },
+      { type: 'CloseCarret', value: '>' },
+      { type: 'String', value: 'Pewewewe' },
+      { type: 'ClosingTagCarret', value: '</' },
+      { type: 'TagName', value: 'p' },
+      { type: 'CloseCarret', value: '>' },
+      { type: 'ClosingTagCarret', value: '</' },
+      { type: 'TagName', value: 'div' },
+      { type: 'CloseCarret', value: '>' },
+      { type: 'ClosingTagCarret', value: '</' },
+      { type: 'TagName', value: 'div' },
+      { type: 'CloseCarret', value: '>' }
+    ])
+  })
+
+  it('should interpret anything contained in an element as a string', () => {
+    expect(
+      tokenizer(`
+            <p>@lol</p>
+        `)
+    ).toEqual(
+      openTag('p').concat(
+        [{ type: 'String', value: '@lol' }].concat(closeTag('p'))
+      )
+    )
+
+    expect(
+      tokenizer(`
+            <p>&lol</p>
+        `)
+    ).toEqual(
+      openTag('p').concat(
+        [{ type: 'String', value: '&lol' }].concat(closeTag('p'))
+      )
+    )
+
+    expect(
+      tokenizer(`
+            <p>&é"!&é"à&é"&çé"&à"u&éçà"u&"çàu&éà"u</p>
+        `)
+    ).toEqual(
+      openTag('p').concat(
+        [
+          { type: 'String', value: '&é"!&é"à&é"&çé"&à"u&éçà"u&"çàu&éà"u' }
+        ].concat(closeTag('p'))
+      )
+    )
+  })
+
+  it('should understand string next to tags', () => {
+    expect(
+      tokenizer(`
+              <p>alacoolausoleil<span>☀️😎</span></p>
+          `)
+    ).toEqual(
+      openTag('p').concat(
+        [{ type: 'String', value: 'alacoolausoleil' }]
+          .concat(openTag('span'))
+          .concat([{ type: 'String', value: '☀️😎' }])
+          .concat(closeTag('span'))
+          .concat(closeTag('p'))
+      )
+    )
   })
 })
