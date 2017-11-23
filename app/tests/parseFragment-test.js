@@ -1,20 +1,29 @@
 import expect from 'expect'
-import { tokenizer } from '../src/framework/parseFragment'
+import { tokenizer, parser } from '../src/framework/parseFragment'
+import {
+  CreateElement,
+  CreateTextNode,
+  UpdateTextNode,
+  ReplaceByTextNode,
+  RemoveTextNode,
+  CloseElement,
+  Variable
+} from '../src/framework/Operation'
 import allHTMLAttributes from './allHTMLAttributes.json'
 
+const openTag = tagName => [
+  { type: 'OpenCarret', value: '<' },
+  { type: 'TagName', value: tagName },
+  { type: 'CloseCarret', value: '>' }
+]
+
+const closeTag = tagName => [
+  { type: 'ClosingTagCarret', value: '</' },
+  { type: 'TagName', value: tagName },
+  { type: 'CloseCarret', value: '>' }
+]
+
 describe('tokenizer', () => {
-  const openTag = tagName => [
-    { type: 'OpenCarret', value: '<' },
-    { type: 'TagName', value: tagName },
-    { type: 'CloseCarret', value: '>' }
-  ]
-
-  const closeTag = tagName => [
-    { type: 'ClosingTagCarret', value: '</' },
-    { type: 'TagName', value: tagName },
-    { type: 'CloseCarret', value: '>' }
-  ]
-
   it('should successfully parse any tagName', () => {
     expect(tokenizer('<')).toEqual([{ type: 'OpenCarret', value: '<' }])
     expect(tokenizer('>')).toEqual([{ type: 'CloseCarret', value: '>' }])
@@ -184,5 +193,11 @@ describe('tokenizer', () => {
           .concat(closeTag('p'))
       )
     )
+  })
+})
+
+describe('parser', () => {
+  it('should understand tag opening', () => {
+    expect(openTag('p')).toEqual([new CreateElement('p')])
   })
 })

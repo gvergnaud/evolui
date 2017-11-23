@@ -66,7 +66,9 @@ export const tokenizer = input => {
     }
 
     const LETTER =
-      previousToken.type === Token.CloseCarret ? /[^<]/ : /[a-z0-9-]/i
+      previousToken && previousToken.type === Token.CloseCarret
+        ? /[^<]/
+        : /[a-z0-9-]/i
 
     if (LETTER.test(char)) {
       let value = ''
@@ -162,7 +164,12 @@ export const tokenizer = input => {
   return tokens
 }
 
-export const parser = tokens => tokens
+const Context = {
+  Attr: 'Context.Attr',
+  Element: 'Context.Element'
+}
+
+export const parser = (tokens = []) => tokens
 
 export default function parseFragment(htmlFragment) {
   return parser(tokenizer(htmlFragment))
