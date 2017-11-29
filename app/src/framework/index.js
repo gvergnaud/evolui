@@ -1,3 +1,5 @@
+import Rx from 'rxjs';
+
 export class OpenComponent {
   constructor(name) {
     this.name = name;
@@ -48,36 +50,141 @@ export class ReplaceByTextNode {
 }
 export class RemoveTextNode {}
 
-export class Binding {}
+export class Bind {
+  constructor(expr) {
+    this.expr = expr;
+  }
+}
 
 export class Component {
   constructor(props = {}) {
     this.props = props;
   }
-  *render() {}
+  async *render() {}
 }
 
-class Queue {
+class DroppedError extends Error {
   constructor() {
-    this.values = [];
+    super('Dropped');
+  }
+}
+
+class ClosedError extends Error {
+  constructor() {
+    super('Closed');
+  }
+}
+
+class AsyncQueue {
+  constructor({ capacity = 2**32 - 1 } = {}) {
+    this.pushes = [];
+    this.shifts = [];
+    this.capacity = capacity;
+    this.isClosed = false;
+    this.closed = new Promise((resolve, reject) => {
+      this._resolveClosedPromise = resolve;
+      this._rejectClosedPromise = reject;
+    });
   }
 
   get length() {
-    return this.values.length;
+    return this.pushes.length;
+  }
+
+  close(reason = new ClosedError()) {
+    if (this.isClosed) return;
+
+    while (this.shifts.length > 0) {
+      this.shifts.shift().reject(reason);
+    }
+
+    this.isClosed = true;
+    if (reason instanceof ClosedError) {
+      this._resolveClosedPromise();
+    } else {
+      this._rejectClosedPromise(reason);
+    }
+  }
+
+  pushSync(value) {
+    if (this.isClosed) {
+      throw new ClosedError();
+    } else if (this.shifts.length > 0) {
+      this.shifts.shift().resolve(value);
+    } else {
+      if (this.pushes.length === this.capacity) {
+        this.pushes.shift().reject(new DroppedError());
+      }
+      this.pushes.push({ value });
+    }
   }
 
   push(value) {
-    this.values.push(value);
+    if (this.isClosed) {
+      return Promise.reject(new ClosedError());
+    } else if (this.shifts.length > 0) {
+      this.shifts.shift().resolve(value);
+      return Promise.resolve();
+    } else {
+      if (this.pushes.length === this.capacity) {
+        this.pushes.shift().reject(new DroppedError());
+      }
+      return new Promise((resolve, reject) => {
+        this.pushes.push({ value, resolve, reject });
+      });
+    }
   }
 
   shift() {
-    return this.values.shift();
+    if (this.pushes.length > 0) {
+      const push = this.pushes.shift();
+      if (push.resolve) push.resolve();
+      return Promise.resolve(push.value);
+    } else if (this.isClosed) {
+      return Promise.reject(new ClosedError());
+    } else {
+      return new Promise((resolve, reject) => {
+        this.shifts.push({ resolve, reject });
+      });
+    }
   }
 
-  [Symbol.iterator]() {
-    return this.values[Symbol.iterator]();
+  async *[Symbol.asyncIterator]() {
+    let value;
+
+    while (true) {
+      try {
+        value = await this.shift();
+      } catch (reason) {
+        switch (reason.constructor) {
+          case DroppedError: continue;
+          case ClosedError: return;
+          default: throw reason;
+        }
+      }
+
+      yield value;
+    }
   }
 }
+
+const pipe = async (inbound, outbound) => {
+  let value;
+
+  while (true) {
+    try { value = await inbound.shift() }
+    catch (reason) {
+      switch (reason.constructor) {
+        case DroppedError: continue;
+        case ClosedError: return;
+        default: throw reason;
+      }
+    }
+
+    try { await outbound.push(value) }
+    catch (reason) { return inbound.close(reason) }
+  }
+};
 
 const closestElement = node => {
   return (
@@ -136,78 +243,153 @@ const interpret = (op, currentNode) => {
   }
 };
 
-export const mount = (generator, root) => {
-  const fragment = root.ownerDocument.createDocumentFragment();
-  let iteration = generator.next(), currentNode = fragment;
+export const mount = async (proc, root) => {
+  let iteration = await proc.next(), currentNode = root;
   while (!iteration.done) {
-    if (iteration.value instanceof Binding) {
-      const queue = new Queue();
-      iteration = generator.next(queue);
-      mount(queue[Symbol.iterator](), closestElement(currentNode));
+    if (iteration.value instanceof Bind) {
+      const inbound = new AsyncQueue();
+      mount(inbound[Symbol.asyncIterator](), closestElement(currentNode));
+      iteration = await proc.next(inbound);
       if (iteration.done) break;
     }
     currentNode = interpret(iteration.value, currentNode);
-    iteration = generator.next();
+    iteration = await proc.next();
   }
-  root.appendChild(fragment);
+  return iteration.value;
 };
 
-const yieldsComponent = function* (component) {
-  yield new OpenComponent(component.constructor.name);
-  yield* yields(component.render());
-  yield new CloseComponent();
-}
-const yieldsTextNode = function* (content) {
-  yield new CreateTextNode(content);
+const Generator = (function* () {}).prototype;
+const AsyncGenerator = (async function* () {}).prototype;
+
+const yieldsConstant = async function* (constant) {
+  yield new CreateTextNode(constant);
 };
-const yieldsMany = function* (xs) {
-  for (const x of xs) {
-    yield* yields(x);
+const yieldsComponent = async function* (component) {
+  yield new OpenComponent(component.constructor.name);
+  const subprogram = component.render();
+  const subprocess = (
+    Generator.isPrototypeOf(subprogram) ||
+    AsyncGenerator.isPrototypeOf(subprogram) || (
+      typeof subprogram.next === 'function' &&
+      typeof subprogram.throw === 'function' &&
+      typeof subprogram.return === 'function'
+    )
+  ) ? subprogram : yields(subprogram);
+  yield* subprocess;
+  yield new CloseComponent();
+};
+const yieldsMany = async function* (programs) {
+  for (const program of programs) {
+    yield* yields(program);
   }
 };
-const yields = x => {
-  if (x instanceof Component) {
-    return yieldsComponent(x);
-  } else if (typeof x === 'string' || x instanceof String) {
-    return yieldsTextNode(x);
-  } else if (Array.isArray(x)) {
-    return yieldsMany(x);
-  } else if (typeof x[Symbol.iterator] === 'function') {
-    return x[Symbol.iterator]();
+const yieldsVariable = async function* (variable) {
+  const inbound = new AsyncQueue({ capacity: 1 });
+  const unsubscribe = Rx.Observable.from(variable).subscribe({
+    next: value => inbound.pushSync(value),
+    error: reason => inbound.close(reason),
+    complete: () => inbound.close(),
+  });
+
+  try {
+    const iterator = inbound[Symbol.asyncIterator]();
+    let iteration = await iterator.next();
+    while (!iteration.done) {
+      yield* yields(iteration.value);
+    }
+  } finally {
+    if (!inbound.isClosed) {
+      unsubscribe();
+    }
+  }
+};
+const yields = program => {
+  if (typeof program === 'string' || program instanceof String) {
+    return yieldsConstant(program);
+  } else if (program instanceof Component) {
+    return yieldsComponent(program);
+  } else if (Array.isArray(program)) {
+    return yieldsMany(program);
+  } else if (typeof program[Rx.Symbol.observable] === 'function') {
+    return yieldsVariable(program);
   } else {
     throw new TypeError(); // TODO
   }
 };
 
 export const render = (component, root) => {
-  return mount(yields(component), root);
+  return mount(yieldsComponent(component), root);
 };
 
-const enqueue = (queue, expr) => {
-  if (typeof expr === 'string' || expr instanceof String) {
-    queue.push(new CreateTextNode(expr));
-  } else if (expr instanceof Component) {
-    const generator = yields(expr);
-    let iteration = generator.next();
-    while (!iteration.done) {
-      queue.push(iteration.value);
-      iteration = generator.next(queue)
-    }
-  } else if (Array.isArray(expr)) {
-    for (const sub of expr) {
-      enqueue(queue, sub);
-    }
-  } else {
+const diff = ({ value, prev }) => {
+  const wasString = typeof prev === 'string' || prev instanceof String;
+  const isString = typeof value === 'string' || value instanceof String;
+  if (prev === undefined && isString) {
+    return new CreateTextNode(value);
+  } else if (wasString && value === undefined) {
+    return new RemoveTextNode();
+  } else if (wasString && isString) {
+    return new UpdateTextNode(value);
+  } else if (prev !== value) {
     throw new TypeError(); // TODO
   }
 };
 
-export const html = function* (fragments, ...exprs) {
+const enqueueConstant = async (outbound, expr) => {
+  await outbound.push(new CreateTextNode(expr));
+};
+const enqueueComponent = async (outbound, expr) => {
+  const proc = yieldsComponent(expr);
+  let iteration = await proc.next();
+  while (!iteration.done) {
+    await outbound.push(iteration.value);
+    iteration = await proc.next(outbound);
+  }
+};
+const enqueueMany = async (outbound, expr) => {
+  for (const sub of expr) {
+    await enqueue(outbound, sub);
+  }
+};
+const enqueueVariable = async (outbound, expr) => {
+  const inbound = new AsyncQueue({ capacity: 1 });
+  const observable = Rx.Observable.from(expr)
+    .scan(({ value: prev }, value) => ({ value, prev }), {});
+  const unsubscribe = observable.subscribe({
+    next: ({ value, prev }) => {
+      const op = diff({ value, prev });
+      if (op) inbound.pushSync(op);
+    },
+    error: reason => {
+      // TODO
+    },
+    complete: () => {
+      // TODO
+    },
+  });
+  pipe(inbound, outbound).then(unsubscribe, unsubscribe);
+};
+const enqueue = (outbound, expr) => {
+  if (typeof expr === 'string' || expr instanceof String) {
+    return enqueueConstant(outbound, expr);
+  } else if (expr instanceof Component) {
+    return enqueueComponent(outbound, expr);
+  } else if (Array.isArray(expr)) {
+    return enqueueMany(outbound, expr);
+  } else if (typeof expr[Rx.Symbol.observable] === 'function') {
+    return enqueueVariable(outbound, expr);
+  } else {
+    return Promise.reject(new TypeError()); // TODO
+  }
+};
+
+export const html = async function* (fragments, ...exprs) {
   for (const [index, fragment] of fragments.entries()) {
     yield* fragment;
     if (index < exprs.length) {
-      const queue = yield new Binding();
-      enqueue(queue, exprs[index]);
+      const expr = exprs[index];
+      const outbound = yield new Bind(expr);
+      await enqueue(outbound, expr);
     }
   }
 };

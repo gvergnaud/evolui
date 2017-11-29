@@ -13,6 +13,10 @@
     "rxjs": "^5.5.2"
   },
   "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-transform-async-generator-functions": "^6.24.1",
+    "babel-plugin-transform-exponentiation-operator": "^6.24.1",
     "webpack": "^3.8.1"
   }
 }
