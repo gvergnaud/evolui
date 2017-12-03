@@ -8,268 +8,131 @@
 
   </body>
   <script>
-  const Token = {
-    OpenCarret: 'OpenCarret',
-    CloseCarret: 'CloseCarret',
-    ClossingTagCarret: 'ClossingTagCarret',
-    SelfClosingTagCarret: 'SelfClosingTagCarret',
-    AttrName: 'AttrName',
-    AttrValue: 'AttrValue',
-    Equal: 'Equal',
-    String: 'String',
-    TagName: 'TagName'
+  class OpenElement {
+    constructor(name) {
+      this.name = name
+    }
+  }
+  class CloseElement {}
+
+  class SetAttribute {
+    constructor(name, value) {
+      this.name = name
+      this.value = value
+    }
   }
 
-  const tokenizer = input => {
-    let current = 0
-    const tokens = []
-
-    while (current < input.length) {
-      let char = input[current]
-      const previousToken = tokens[tokens.length - 1]
-
-      if (char === '<') {
-        if (input[current + 1] === '/') {
-          tokens.push({
-            type: Token.ClossingTagCarret,
-            value: '</'
-          })
-
-          current += 2
-        } else {
-          tokens.push({
-            type: Token.OpenCarret,
-            value: '<'
-          })
-
-          current++
-        }
-
-        continue
-      }
-
-      if (char === '>') {
-        tokens.push({
-          type: Token.CloseCarret,
-          value: '>'
-        })
-
-        current++
-        continue
-      }
-
-      if (char + input[current + 1] === '/>') {
-        tokens.push({
-          type: Token.SelfClosingTagCarret,
-          value: '/>'
-        })
-
-        current += 2
-        continue
-      }
-
-      // If Whitespace, continue
-      const WHITESPACE = /\s/
-      if (WHITESPACE.test(char)) {
-        current++
-        continue
-      }
-
-      const LETTER = /[a-z0-9-]/i
-      if (LETTER.test(char)) {
-        let value = ''
-
-        if (previousToken.type === Token.CloseCarret) {
-          while (/[^<]/.test(char)) {
-            value += char
-            char = input[++current]
-          }
-        } else {
-          while (LETTER.test(char)) {
-            value += char
-            char = input[++current]
-          }
-        }
-
-        if (!previousToken) {
-          tokens.push({
-            type: Token.String,
-            value
-          })
-        } else if (
-          previousToken.type === Token.OpenCarret ||
-          previousToken.type === Token.ClossingTagCarret
-        ) {
-          tokens.push({
-            type: Token.TagName,
-            value
-          })
-        } else if (
-          previousToken.type === Token.TagName ||
-          previousToken.type === Token.AttrValue
-        ) {
-          tokens.push({
-            type: Token.AttrName,
-            value
-          })
-        } else if (previousToken.type === Token.CloseCarret) {
-          tokens.push({
-            type: Token.String,
-            value
-          })
-        }
-
-        continue
-      }
-
-      // Equal
-      if (char === '=') {
-        tokens.push({
-          type: Token.Equal,
-          value: '='
-        })
-        current++
-        continue
-      }
-
-      // Strings
-      if (char === '"' || char === "'") {
-        let value = ''
-
-        if (char === '"') {
-          char = input[++current]
-          while (char !== '"' && char !== undefined) {
-            value += char
-            char = input[++current]
-          }
-        } else if (char === "'") {
-          char = input[++current]
-          while (char !== "'" && char !== undefined) {
-            value += char
-            char = input[++current]
-          }
-        }
-
-        if (!previousToken) {
-          tokens.push({
-            type: Token.String,
-            value
-          })
-        } else if (previousToken.type === Token.Equal) {
-          tokens.push({
-            type: Token.AttrValue,
-            value
-          })
-        } else {
-          tokens.push({
-            type: Token.String,
-            value
-          })
-        }
-
-        current++
-        continue
-      }
-
-      throw new TypeError('I dont know what this character is: ' + char)
+  class CreateTextNode {
+    constructor(content) {
+      this.content = content
     }
-
-    return tokens
   }
 
-    console.log(tokenizer(`
-        <head>
-          <meta charset="utf-8">
-          <title>sandbox</title>
-        </head>
-        <body>
-        <scrip>const a = {} lol
-        var code = [1,2,3,4].map(x => x  +1 )
-        </scrip>
-        </body>`))
+  const tagNamePattern = '[^(\\s|<|>)]+'
+  const attrNamePattern = '[^\\s|=]+'
 
-    class CreateElement {
-      constructor(name) {
-        this.name = name
-      }
-    }
+  // data State a = Element | AttributeName | AttributeValue a
+  const createState = (type, value) => ({
+    type,
+    value
+  })
 
-    class SetAttribute {
-      constructor(name, value) {
-        this.name = name
-        this.value = value
-      }
-    }
+  // parser :: String -> State -> Generator Operation State
+  function* parser(htmlFragment, state = { type: 'Element' }) {
+    const trimed = htmlFragment.trim()
+    if (!trimed) return state
 
-    class RemoveAttribute {
-      constructor(name, value) {
-        this.name = name
-      }
-    }
+    if (state.type === 'Element') return yield* elementParser(trimed)
 
-    class CreateTextNode {
-      constructor(content) {
-        this.content = content
-      }
-    }
+    if (state.type === 'AttributeName') return yield* attributeNameParser(trimed)
 
-    class CloseElement {}
+    if (state.type === 'AttributeValue')
+      return yield* attributeValueParser(trimed, state.value)
+  }
 
-    class Variable {}
+  // supports strings, open element and close elements
+  function* elementParser(htmlFragment) {
+    const isOpenElement = /^<[^\/]/.test(htmlFragment)
 
-    const isInAttributes = previousTokens =>
-      previousTokens.reduceRight(
-        (acc, token) =>
-          acc === undefined
-            ? token.type === Token.OpenCarret && token.type !== Token.CloseCarret
-            : acc,
-        undefined
+    if (isOpenElement) {
+      const [_, nodeName, rest] = htmlFragment.match(
+        new RegExp(`^<(${tagNamePattern})((>|\\s)(.*))`)
       )
+      yield new OpenElement(nodeName)
+      return yield* parser(rest, createState('AttributeName'))
+    }
 
+    const isCloseElement = /^<\//.test(htmlFragment)
 
-    // const parser = tokens => {
-    //   const operations = []
-    //   let current = 0
-    //
-    //   while (current < tokens.length) {
-    //     let token = tokens[current]
-    //     console.log(token)
-    //     switch (token.type) {
-    //       // case Token.OpenCarret:
-    //       //   const nextToken = tokens[current + 1]
-    //       //   console.log(nextToken)
-    //       //   if (nextToken.type === Token.AttrName) {
-    //       //     operations.push(new CreateElement(nextToken.value))
-    //       //     current += 2
-    //       //   } else {
-    //       //     current++
-    //       //   }
-    //       //   continue;
-    //
-    //       case Token.AttrName:
-    //         const previousToken = tokens[current - 1]
-    //
-    //         if (previousToken.type === Token.OpenCarret) {
-    //           operations.push(new CreateElement(token.value))
-    //         } else if (previousToken.type === Token.CloseCarret) {
-    //           operations.push(new CreateTextNode(token.value))
-    //         } else if (previousToken.type === Token.AttrName) {
-    //           if (isInAttributes(tokens.slice(0, current)) {
-    //             operations.push(new CreateTextNode(token.value))
-    //           }
-    //         }
-    //         current++
-    //         continue;
-    //
-    //       default:
-    //         current++
-    //     }
-    //   }
-    //
-    //   return operations
-    // }
-    //
-    // console.log(parser(tokenizer('<div class="azeazez">azeaze</div>')))
+    if (isCloseElement) {
+      const [_, nodeName, rest] = htmlFragment.match(
+        new RegExp(`^<\\/(${tagNamePattern})>(.*)`)
+      )
+      yield new CloseElement()
+      return yield* parser(rest, createState('Element'))
+    }
+
+    const [_, str, rest] = htmlFragment.match(/^([^<]*)(<?.*)/)
+    yield new CreateTextNode(str)
+    return yield* parser(rest, createState('Element'))
+  }
+
+  // supports closing tag, self closing tags, single attributes names
+  function* attributeNameParser(htmlFragment) {
+    const isClosing = /^>/.test(htmlFragment)
+    if (isClosing)
+      return yield* parser(htmlFragment.slice(1), createState('Element'))
+
+    const isSelfClosing = /^\/>/.test(htmlFragment)
+    if (isSelfClosing) {
+      yield new CloseElement()
+      return yield* parser(htmlFragment.slice(2), createState('Element'))
+    }
+
+    const withoutvalueRegExp = new RegExp(`^(${attrNamePattern})(\\s(.*)|$)`)
+    const isAttributeWithoutValue = withoutvalueRegExp.test(htmlFragment)
+    if (isAttributeWithoutValue) {
+      const [_, attrName, rest] = htmlFragment.match(withoutvalueRegExp)
+      yield new SetAttribute(attrName, '')
+      return yield* parser(rest, createState('AttributeName'))
+    }
+
+    const [_, attrName, rest] = htmlFragment.match(
+      new RegExp(`^(${attrNamePattern})=(.*)`)
+    )
+    return yield* parser(rest, createState('AttributeValue', attrName))
+  }
+
+  // supports string attribute
+  function* attributeValueParser(htmlFragment, attrName) {
+    const isDoubleQuoteAttr = /^"/.test(htmlFragment)
+    if (isDoubleQuoteAttr) {
+      const [_, attrValue, rest] = htmlFragment.match(/^"([^"]+)"(.*)/)
+      yield new SetAttribute(attrName, attrValue)
+      return yield* parser(rest, createState('AttributeName'))
+    }
+
+    const isSimpleQuoteAttr = /^'/.test(htmlFragment)
+    if (isSimpleQuoteAttr) {
+      const [_, attrValue, rest] = htmlFragment.match(/^'([^']+)'(.*)/)
+      yield new SetAttribute(attrName, attrValue)
+      return yield* parser(rest, createState('AttributeName'))
+    }
+
+    // no quote attr
+    const [_, attrValue, rest] = htmlFragment.match(/^(.*)\s(.*)/)
+    yield new SetAttribute(attrName, attrValue)
+    return yield* parser(rest, createState('AttributeName'))
+  }
+
+  const gen = parser(`
+    <div class="Component">
+      <div class="Component-lol">Du text mec</div>
+      <p>Je trouve tout ça très très bien</p>
+      <input type="text" value="coucou" />
+    </div>
+  `)
+  console.log([...gen])
 
   </script>
 </html>

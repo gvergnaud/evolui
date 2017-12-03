@@ -1,203 +1,76 @@
 import expect from 'expect'
-import { tokenizer, parser } from '../src/framework/parseFragment'
 import {
-  CreateElement,
-  CreateTextNode,
-  UpdateTextNode,
-  ReplaceByTextNode,
-  RemoveTextNode,
+  parser,
+  OpenElement,
   CloseElement,
-  Variable
-} from '../src/framework/Operation'
+  SetAttribute,
+  CreateTextNode
+} from '../src/framework/parseFragment'
 import allHTMLAttributes from './allHTMLAttributes.json'
 
-const openTag = tagName => [
-  { type: 'OpenCarret', value: '<' },
-  { type: 'TagName', value: tagName },
-  { type: 'CloseCarret', value: '>' }
-]
-
-const closeTag = tagName => [
-  { type: 'ClosingTagCarret', value: '</' },
-  { type: 'TagName', value: tagName },
-  { type: 'CloseCarret', value: '>' }
-]
-
-describe('tokenizer', () => {
-  it('should successfully parse any tagName', () => {
-    expect(tokenizer('<')).toEqual([{ type: 'OpenCarret', value: '<' }])
-    expect(tokenizer('>')).toEqual([{ type: 'CloseCarret', value: '>' }])
-    expect(tokenizer('/>')).toEqual([
-      { type: 'SelfClosingTagCarret', value: '/>' }
-    ])
-    expect(tokenizer('</')).toEqual([{ type: 'ClosingTagCarret', value: '</' }])
-
-    expect(tokenizer('<div>')).toEqual([
-      { type: 'OpenCarret', value: '<' },
-      { type: 'TagName', value: 'div' },
-      { type: 'CloseCarret', value: '>' }
-    ])
-  })
-
-  it('should successfully parse attributes tokens', () => {
-    expect(tokenizer('<div class="hello" />')).toEqual([
-      { type: 'OpenCarret', value: '<' },
-      { type: 'TagName', value: 'div' },
-      { type: 'AttrName', value: 'class' },
-      { type: 'Equal', value: '=' },
-      { type: 'AttrValue', value: 'hello' },
-      { type: 'SelfClosingTagCarret', value: '/>' }
-    ])
-  })
-
-  it('should parse any number of attributes', () => {
-    expect(tokenizer('<div class="hello" id="yes" />')).toEqual([
-      { type: 'OpenCarret', value: '<' },
-      { type: 'TagName', value: 'div' },
-      { type: 'AttrName', value: 'class' },
-      { type: 'Equal', value: '=' },
-      { type: 'AttrValue', value: 'hello' },
-      { type: 'AttrName', value: 'id' },
-      { type: 'Equal', value: '=' },
-      { type: 'AttrValue', value: 'yes' },
-      { type: 'SelfClosingTagCarret', value: '/>' }
-    ])
-
-    expect(tokenizer('<div class="hello" id="yes" data-lol="cool" />')).toEqual(
-      [
-        { type: 'OpenCarret', value: '<' },
-        { type: 'TagName', value: 'div' },
-        { type: 'AttrName', value: 'class' },
-        { type: 'Equal', value: '=' },
-        { type: 'AttrValue', value: 'hello' },
-        { type: 'AttrName', value: 'id' },
-        { type: 'Equal', value: '=' },
-        { type: 'AttrValue', value: 'yes' },
-        { type: 'AttrName', value: 'data-lol' },
-        { type: 'Equal', value: '=' },
-        { type: 'AttrValue', value: 'cool' },
-        { type: 'SelfClosingTagCarret', value: '/>' }
-      ]
-    )
-  })
-
-  it('should parse all html attributes', () => {
-    Object.values(allHTMLAttributes).forEach(attr => {
-      expect(tokenizer(`<div ${attr}="cool" />`)).toEqual([
-        { type: 'OpenCarret', value: '<' },
-        { type: 'TagName', value: 'div' },
-        { type: 'AttrName', value: attr },
-        { type: 'Equal', value: '=' },
-        { type: 'AttrValue', value: 'cool' },
-        { type: 'SelfClosingTagCarret', value: '/>' }
-      ])
-    })
-  })
-
-  it('should parse nested HTML elements', () => {
-    expect(
-      tokenizer(`
-          <div lol="cool">
-            <h1>Hello</h1>
-            <div>
-                <p>How are you?</p>
-                <p>Pewewewe</p>
-            </div>
-          </div>
-      `)
-    ).toEqual([
-      { type: 'OpenCarret', value: '<' },
-      { type: 'TagName', value: 'div' },
-      { type: 'AttrName', value: 'lol' },
-      { type: 'Equal', value: '=' },
-      { type: 'AttrValue', value: 'cool' },
-      { type: 'CloseCarret', value: '>' },
-      { type: 'OpenCarret', value: '<' },
-      { type: 'TagName', value: 'h1' },
-      { type: 'CloseCarret', value: '>' },
-      { type: 'String', value: 'Hello' },
-      { type: 'ClosingTagCarret', value: '</' },
-      { type: 'TagName', value: 'h1' },
-      { type: 'CloseCarret', value: '>' },
-      { type: 'OpenCarret', value: '<' },
-      { type: 'TagName', value: 'div' },
-      { type: 'CloseCarret', value: '>' },
-      { type: 'OpenCarret', value: '<' },
-      { type: 'TagName', value: 'p' },
-      { type: 'CloseCarret', value: '>' },
-      { type: 'String', value: 'How are you?' },
-      { type: 'ClosingTagCarret', value: '</' },
-      { type: 'TagName', value: 'p' },
-      { type: 'CloseCarret', value: '>' },
-      { type: 'OpenCarret', value: '<' },
-      { type: 'TagName', value: 'p' },
-      { type: 'CloseCarret', value: '>' },
-      { type: 'String', value: 'Pewewewe' },
-      { type: 'ClosingTagCarret', value: '</' },
-      { type: 'TagName', value: 'p' },
-      { type: 'CloseCarret', value: '>' },
-      { type: 'ClosingTagCarret', value: '</' },
-      { type: 'TagName', value: 'div' },
-      { type: 'CloseCarret', value: '>' },
-      { type: 'ClosingTagCarret', value: '</' },
-      { type: 'TagName', value: 'div' },
-      { type: 'CloseCarret', value: '>' }
-    ])
-  })
-
-  it('should interpret anything contained in an element as a string', () => {
-    expect(
-      tokenizer(`
-            <p>@lol</p>
-        `)
-    ).toEqual(
-      openTag('p').concat(
-        [{ type: 'String', value: '@lol' }].concat(closeTag('p'))
-      )
-    )
-
-    expect(
-      tokenizer(`
-            <p>&lol</p>
-        `)
-    ).toEqual(
-      openTag('p').concat(
-        [{ type: 'String', value: '&lol' }].concat(closeTag('p'))
-      )
-    )
-
-    expect(
-      tokenizer(`
-            <p>&é"!&é"à&é"&çé"&à"u&éçà"u&"çàu&éà"u</p>
-        `)
-    ).toEqual(
-      openTag('p').concat(
-        [
-          { type: 'String', value: '&é"!&é"à&é"&çé"&à"u&éçà"u&"çàu&éà"u' }
-        ].concat(closeTag('p'))
-      )
-    )
-  })
-
-  it('should understand string next to tags', () => {
-    expect(
-      tokenizer(`
-              <p>alacoolausoleil<span>☀️😎</span></p>
-          `)
-    ).toEqual(
-      openTag('p').concat(
-        [{ type: 'String', value: 'alacoolausoleil' }]
-          .concat(openTag('span'))
-          .concat([{ type: 'String', value: '☀️😎' }])
-          .concat(closeTag('span'))
-          .concat(closeTag('p'))
-      )
-    )
-  })
-})
-
 describe('parser', () => {
-  it('should understand tag opening', () => {
-    expect(openTag('p')).toEqual([new CreateElement('p')])
+  it('should successfully parse opened', () => {
+    expect([...parser('<div>')]).toEqual([new OpenElement('div')])
+  })
+
+  it('should successfully parse any tagName', () => {
+    expect([...parser('<div class="name">')]).toEqual([
+      new OpenElement('div'),
+      new SetAttribute('class', 'name')
+    ])
+  })
+
+  it('should work for nested dom elements', () => {
+    expect([
+      ...parser('<div class="name"><lol attro-randome="value hyper chelou">')
+    ]).toEqual([
+      new OpenElement('div'),
+      new SetAttribute('class', 'name'),
+      new OpenElement('lol'),
+      new SetAttribute('attro-randome', 'value hyper chelou')
+    ])
+  })
+
+  it('should work with several attributes', () => {
+    expect([
+      ...parser('<lol attr-one="hola que tal" attr-two="sisisi">')
+    ]).toEqual([
+      new OpenElement('lol'),
+      new SetAttribute('attr-one', 'hola que tal'),
+      new SetAttribute('attr-two', 'sisisi')
+    ])
+  })
+
+  it('should understand closing tag', () => {
+    expect([...parser('</lol>')]).toEqual([new CloseElement()])
+  })
+
+  it('should understand self closing tag', () => {
+    expect([...parser('<lol attr="attrvalue" />')]).toEqual([
+      new OpenElement('lol'),
+      new SetAttribute('attr', 'attrvalue'),
+      new CloseElement()
+    ])
+  })
+
+  it('should understand simple strings', () => {
+    expect([...parser('coucou')]).toEqual([new CreateTextNode('coucou')])
+  })
+
+  it('should understand complexe strings', () => {
+    const str = 'coucou @azaze aze aozdsk &azeazeo èé§!"è!\'\'"'
+    expect([...parser(str)]).toEqual([new CreateTextNode(str)])
+  })
+
+  it('should understand juxtaposed element', () => {
+    const str = '<div>Du text mec</div><p>Je trouve tout ça très très bien</p>'
+    expect([...parser(str)]).toEqual([
+      new OpenElement('div'),
+      new CreateTextNode('Du text mec'),
+      new CloseElement(),
+      new OpenElement('p'),
+      new CreateTextNode('Je trouve tout ça très très bien'),
+      new CloseElement()
+    ])
   })
 })

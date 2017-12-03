@@ -1,176 +1,116 @@
-const Token = {
-  OpenCarret: 'OpenCarret',
-  CloseCarret: 'CloseCarret',
-  ClosingTagCarret: 'ClosingTagCarret',
-  SelfClosingTagCarret: 'SelfClosingTagCarret',
-  AttrName: 'AttrName',
-  AttrValue: 'AttrValue',
-  Equal: 'Equal',
-  String: 'String',
-  TagName: 'TagName'
+export class OpenElement {
+  constructor(name) {
+    this.name = name
+  }
+}
+export class CloseElement {}
+
+export class SetAttribute {
+  constructor(name, value) {
+    this.name = name
+    this.value = value
+  }
 }
 
-export const tokenizer = input => {
-  let current = 0
-  const tokens = []
+export class CreateTextNode {
+  constructor(content) {
+    this.content = content
+  }
+}
 
-  while (current < input.length) {
-    let char = input[current]
-    const previousToken = tokens[tokens.length - 1]
+const tagNamePattern = '[^(\\s|<|>)]+'
+const attrNamePattern = '[^\\s|=]+'
 
-    if (char === '<') {
-      if (input[current + 1] === '/') {
-        tokens.push({
-          type: Token.ClosingTagCarret,
-          value: '</'
-        })
+// data State a = Element | AttributeName | AttributeValue a
+const createState = (type, value) => ({
+  type,
+  value
+})
 
-        current += 2
-      } else {
-        tokens.push({
-          type: Token.OpenCarret,
-          value: '<'
-        })
+// parser :: String -> State -> Generator Operation State
+export function* parser(htmlFragment, state = { type: 'Element' }) {
+  const trimed = htmlFragment.trim()
+  if (!trimed) return state
 
-        current++
-      }
+  if (state.type === 'Element') return yield* elementParser(trimed)
 
-      continue
-    }
+  if (state.type === 'AttributeName') return yield* attributeNameParser(trimed)
 
-    if (char === '>') {
-      tokens.push({
-        type: Token.CloseCarret,
-        value: '>'
-      })
+  if (state.type === 'AttributeValue')
+    return yield* attributeValueParser(trimed, state.value)
+}
 
-      current++
-      continue
-    }
+// supports strings, open element and close elements
+function* elementParser(htmlFragment) {
+  const isOpenElement = /^<[^\/]/.test(htmlFragment)
 
-    if (char + input[current + 1] === '/>') {
-      tokens.push({
-        type: Token.SelfClosingTagCarret,
-        value: '/>'
-      })
-
-      current += 2
-      continue
-    }
-
-    // If Whitespace, continue
-    const WHITESPACE = /\s/
-    if (WHITESPACE.test(char)) {
-      current++
-      continue
-    }
-
-    const LETTER =
-      previousToken && previousToken.type === Token.CloseCarret
-        ? /[^<]/
-        : /[a-z0-9-]/i
-
-    if (LETTER.test(char)) {
-      let value = ''
-
-      while (LETTER.test(char)) {
-        value += char
-        char = input[++current]
-      }
-
-      if (!previousToken) {
-        tokens.push({
-          type: Token.String,
-          value
-        })
-      } else if (
-        previousToken.type === Token.OpenCarret ||
-        previousToken.type === Token.ClosingTagCarret
-      ) {
-        tokens.push({
-          type: Token.TagName,
-          value
-        })
-      } else if (
-        previousToken.type === Token.TagName ||
-        previousToken.type === Token.AttrValue
-      ) {
-        tokens.push({
-          type: Token.AttrName,
-          value
-        })
-      } else if (previousToken.type === Token.CloseCarret) {
-        tokens.push({
-          type: Token.String,
-          value
-        })
-      }
-
-      continue
-    }
-
-    // Equal
-    if (char === '=') {
-      tokens.push({
-        type: Token.Equal,
-        value: '='
-      })
-      current++
-      continue
-    }
-
-    // Strings
-    if (char === '"' || char === "'") {
-      let value = ''
-
-      if (char === '"') {
-        char = input[++current]
-        while (char !== '"' && char !== undefined) {
-          value += char
-          char = input[++current]
-        }
-      } else if (char === "'") {
-        char = input[++current]
-        while (char !== "'" && char !== undefined) {
-          value += char
-          char = input[++current]
-        }
-      }
-
-      if (!previousToken) {
-        tokens.push({
-          type: Token.String,
-          value
-        })
-      } else if (previousToken.type === Token.Equal) {
-        tokens.push({
-          type: Token.AttrValue,
-          value
-        })
-      } else {
-        tokens.push({
-          type: Token.String,
-          value
-        })
-      }
-
-      current++
-      continue
-    }
-
-    throw new TypeError('I dont know what this character is: ' + char)
+  if (isOpenElement) {
+    const [_, nodeName, rest] = htmlFragment.match(
+      new RegExp(`^<(${tagNamePattern})((>|\\s)(.*))`)
+    )
+    yield new OpenElement(nodeName)
+    return yield* parser(rest, createState('AttributeName'))
   }
 
-  return tokens
+  const isCloseElement = /^<\//.test(htmlFragment)
+
+  if (isCloseElement) {
+    const [_, nodeName, rest] = htmlFragment.match(
+      new RegExp(`^<\\/(${tagNamePattern})>(.*)`)
+    )
+    yield new CloseElement()
+    return yield* parser(rest, createState('Element'))
+  }
+
+  const [_, str, rest] = htmlFragment.match(/^([^<]*)(<?.*)/)
+  yield new CreateTextNode(str)
+  return yield* parser(rest, createState('Element'))
 }
 
-const Context = {
-  Attr: 'Context.Attr',
-  Element: 'Context.Element'
+// supports closing tag, self closing tags, single attributes names
+function* attributeNameParser(htmlFragment) {
+  const isClosing = /^>/.test(htmlFragment)
+  if (isClosing)
+    return yield* parser(htmlFragment.slice(1), createState('Element'))
+
+  const isSelfClosing = /^\/>/.test(htmlFragment)
+  if (isSelfClosing) {
+    yield new CloseElement()
+    return yield* parser(htmlFragment.slice(2), createState('Element'))
+  }
+
+  const withoutvalueRegExp = new RegExp(`^(${attrNamePattern})(\\s(.*)|$)`)
+  const isAttributeWithoutValue = withoutvalueRegExp.test(htmlFragment)
+  if (isAttributeWithoutValue) {
+    const [_, attrName, rest] = htmlFragment.match(withoutvalueRegExp)
+    yield new SetAttribute(attrName, '')
+    return yield* parser(rest, createState('AttributeName'))
+  }
+
+  const [_, attrName, rest] = htmlFragment.match(
+    new RegExp(`^(${attrNamePattern})=(.*)`)
+  )
+  return yield* parser(rest, createState('AttributeValue', attrName))
 }
 
-export const parser = (tokens = []) => tokens
+// supports string attribute
+function* attributeValueParser(htmlFragment, attrName) {
+  const isDoubleQuoteAttr = /^"/.test(htmlFragment)
+  if (isDoubleQuoteAttr) {
+    const [_, attrValue, rest] = htmlFragment.match(/^"([^"]+)"(.*)/)
+    yield new SetAttribute(attrName, attrValue)
+    return yield* parser(rest, createState('AttributeName'))
+  }
 
-export default function parseFragment(htmlFragment) {
-  return parser(tokenizer(htmlFragment))
+  const isSimpleQuoteAttr = /^'/.test(htmlFragment)
+  if (isSimpleQuoteAttr) {
+    const [_, attrValue, rest] = htmlFragment.match(/^'([^']+)'(.*)/)
+    yield new SetAttribute(attrName, attrValue)
+    return yield* parser(rest, createState('AttributeName'))
+  }
+
+  // no quote attr
+  const [_, attrValue, rest] = htmlFragment.match(/^(.*)\s(.*)/)
+  yield new SetAttribute(attrName, attrValue)
+  return yield* parser(rest, createState('AttributeName'))
 }
