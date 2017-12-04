@@ -20,6 +20,7 @@ export class CreateTextNode {
 
 const tagNamePattern = '[^(\\s|<|>)]+'
 const attrNamePattern = '[^\\s|=]+'
+const restPattern = '(.|\n)*'
 
 // data State a = Element | AttributeName | AttributeValue a
 const createState = (type, value) => ({
@@ -46,7 +47,7 @@ function* elementParser(htmlFragment) {
 
   if (isOpenElement) {
     const [_, nodeName, rest] = htmlFragment.match(
-      new RegExp(`^<(${tagNamePattern})((>|\\s)(.*))`)
+      new RegExp(`^<(${tagNamePattern})((>|\\s)(${restPattern}))`)
     )
     yield new OpenElement(nodeName)
     return yield* parser(rest, createState('AttributeName'))
@@ -56,13 +57,15 @@ function* elementParser(htmlFragment) {
 
   if (isCloseElement) {
     const [_, nodeName, rest] = htmlFragment.match(
-      new RegExp(`^<\\/(${tagNamePattern})>(.*)`)
+      new RegExp(`^<\\/(${tagNamePattern})>(${restPattern})`)
     )
     yield new CloseElement()
     return yield* parser(rest, createState('Element'))
   }
 
-  const [_, str, rest] = htmlFragment.match(/^([^<]*)(<?.*)/)
+  const [_, str, rest] = htmlFragment.match(
+    new RegExp(`^([^<]*)(<?(${restPattern}))`)
+  )
   yield new CreateTextNode(str)
   return yield* parser(rest, createState('Element'))
 }
@@ -79,7 +82,9 @@ function* attributeNameParser(htmlFragment) {
     return yield* parser(htmlFragment.slice(2), createState('Element'))
   }
 
-  const withoutvalueRegExp = new RegExp(`^(${attrNamePattern})(\\s(.*)|$)`)
+  const withoutvalueRegExp = new RegExp(
+    `^(${attrNamePattern})(\\s(${restPattern})|$)`
+  )
   const isAttributeWithoutValue = withoutvalueRegExp.test(htmlFragment)
   if (isAttributeWithoutValue) {
     const [_, attrName, rest] = htmlFragment.match(withoutvalueRegExp)
@@ -88,7 +93,7 @@ function* attributeNameParser(htmlFragment) {
   }
 
   const [_, attrName, rest] = htmlFragment.match(
-    new RegExp(`^(${attrNamePattern})=(.*)`)
+    new RegExp(`^(${attrNamePattern})=(${restPattern})`)
   )
   return yield* parser(rest, createState('AttributeValue', attrName))
 }
@@ -97,20 +102,26 @@ function* attributeNameParser(htmlFragment) {
 function* attributeValueParser(htmlFragment, attrName) {
   const isDoubleQuoteAttr = /^"/.test(htmlFragment)
   if (isDoubleQuoteAttr) {
-    const [_, attrValue, rest] = htmlFragment.match(/^"([^"]+)"(.*)/)
+    const [_, attrValue, rest] = htmlFragment.match(
+      new RegExp(`^"([^"]+)"(${restPattern})`)
+    )
     yield new SetAttribute(attrName, attrValue)
     return yield* parser(rest, createState('AttributeName'))
   }
 
   const isSimpleQuoteAttr = /^'/.test(htmlFragment)
   if (isSimpleQuoteAttr) {
-    const [_, attrValue, rest] = htmlFragment.match(/^'([^']+)'(.*)/)
+    const [_, attrValue, rest] = htmlFragment.match(
+      new RexExp(`^'([^']+)'(${restPattern})`)
+    )
     yield new SetAttribute(attrName, attrValue)
     return yield* parser(rest, createState('AttributeName'))
   }
 
   // no quote attr
-  const [_, attrValue, rest] = htmlFragment.match(/^(.*)\s(.*)/)
+  const [_, attrValue, rest] = htmlFragment.match(
+    new RexExp(`(.*)\\s(${restPattern})`)
+  )
   yield new SetAttribute(attrName, attrValue)
   return yield* parser(rest, createState('AttributeName'))
 }

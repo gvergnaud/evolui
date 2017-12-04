@@ -73,4 +73,40 @@ describe('parser', () => {
       new CloseElement()
     ])
   })
+
+  it('should work with multiline strings', () => {
+    const str = `
+      <div class="Component">
+        <div class="Component-lol">Du text mec</div>
+        <p>Je trouve tout ça très très bien</p>
+        <input type="text" value="coucou" />
+      </div>
+    `
+    expect([...parser(str)]).toEqual([
+      new OpenElement('div'),
+      new SetAttribute('class', 'Component'),
+      new OpenElement('div'),
+      new SetAttribute('class', 'Component-lol'),
+      new CreateTextNode('Du text mec'),
+      new CloseElement(),
+      new OpenElement('p'),
+      new CreateTextNode('Je trouve tout ça très très bien'),
+      new CloseElement(),
+      new OpenElement('input'),
+      new SetAttribute('type', 'text'),
+      new SetAttribute('value', 'coucou'),
+      new CloseElement(),
+      new CloseElement()
+    ])
+  })
+
+  it('should parse all html attributes', () => {
+    Object.values(allHTMLAttributes).forEach(attr => {
+      expect([...parser(`<div ${attr}="cool" />`)]).toEqual([
+        new OpenElement('div'),
+        new SetAttribute(attr, 'cool'),
+        new CloseElement()
+      ])
+    })
+  })
 })
