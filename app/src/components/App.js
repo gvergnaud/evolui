@@ -6,6 +6,7 @@ import InputBar from './InputBar'
 import MouseTracker from './MouseTracker'
 import TodoList from './TodoList'
 import Pokemon from './Pokemon'
+import Animated from './Animated'
 
 const App = () => html`
   <div>
@@ -14,6 +15,7 @@ const App = () => html`
     ${InputBar()}
     ${MouseTracker()}
     ${store.state.switchMap(({ todos }) => TodoList({ todos }))}
+    ${Animated()}
   </div>
 `
 
