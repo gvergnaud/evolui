@@ -1,22 +1,9 @@
-export class OpenElement {
-  constructor(name) {
-    this.name = name
-  }
-}
-export class CloseElement {}
-
-export class SetAttribute {
-  constructor(name, value) {
-    this.name = name
-    this.value = value
-  }
-}
-
-export class CreateTextNode {
-  constructor(content) {
-    this.content = content
-  }
-}
+import {
+  OpenElement,
+  CloseElement,
+  SetAttribute,
+  CreateTextNode
+} from './Operation'
 
 const tagNamePattern = '[^(\\s|<|>)]+'
 const attrNamePattern = '[^\\s|=]+'
