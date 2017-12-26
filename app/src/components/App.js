@@ -9,17 +9,18 @@ import Pokemon from './Pokemon'
 import Chat from './Chat'
 
 const TodoApp = () => html`
-  ${InputBar()}
-  ${store.state.switchMap(({ todos }) => TodoList({ todos }))}
+  <div>
+    ${InputBar()}
+    ${store.state.switchMap(({ todos }) => TodoList({ todos }))}
+  </div>
 `
-// ${Pokemon()}
-// ${TodoApp()}
-// ${Ticker()}
-// ${MouseTracker()}
 
 const App = () => html`
   <div>
-    ${Chat()}
+    ${Pokemon()}
+    ${TodoApp()}
+    ${Ticker()}
+    ${MouseTracker()}
   </div>
 `
 

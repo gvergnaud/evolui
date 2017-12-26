@@ -7,16 +7,16 @@ const last = xs => xs[xs.length - 1]
 const compose = (...fns) => x => fns.reduceRight((value, f) => f(value), x)
 const pipe = (...fs) => fs.reduce((acc, f) => x => f(acc(x)), x => x)
 
+const isPromise = p => p && typeof p.then === 'function'
+const isObservable = x => x && typeof x.subscribe === 'function'
+
 export const createOperators = Observable => {
   const fromPromise = p =>
     new Observable(observer => {
-      p.then(x => observer.next(x))
+      p.then(x => observer.next(x)).catch(e => observer.complete())
     })
 
-  const toObservable = x =>
-    x instanceof Observable
-      ? x
-      : x instanceof Promise ? fromPromise(x) : Observable.of(x)
+  const toObservable = x => (isObservable(x) ? x : Observable.of(x))
 
   const startWith = curry(
     (initalValue, stream) =>
@@ -36,7 +36,10 @@ export const createOperators = Observable => {
 
       const subs = observables.map((obs, index) =>
         obs.subscribe({
-          error: x => observer.error(x),
+          error: () => {
+            active[index] = false
+            if (active.every(x => x === false)) observer.complete()
+          },
           complete: () => {
             active[index] = false
             if (active.every(x => x === false)) observer.complete()
@@ -130,6 +133,8 @@ export const createOperators = Observable => {
     obs.length ? combineLatest(...obs, (...xs) => xs) : Observable.of([])
 
   return {
+    isPromise,
+    isObservable,
     sample,
     map,
     switchMap,

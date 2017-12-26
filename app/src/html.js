@@ -1,4 +1,3 @@
-import createHtml from '../../package/lib/evolui'
-import { Observable } from 'rxjs'
+import html from '../../package/src'
 
-export default createHtml(Observable)
+export default html
