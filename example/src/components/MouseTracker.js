@@ -1,4 +1,4 @@
-import html from '../html'
+import html from 'evolui'
 import { listen } from '../utils/observables'
 
 const mouse = listen(window, 'mousemove')

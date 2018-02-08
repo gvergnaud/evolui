@@ -1,4 +1,4 @@
-import html from '../html'
+import html from 'evolui'
 import store from '../store'
 
 import Ticker from './Ticker'

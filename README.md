@@ -3,6 +3,8 @@ An asynchronous template library
 
 A template library that magically understand Promises and Observables.
 
+Evolui leverages template tags to automatically manage your observable subscriptions, so you only care about where the data should be displayed.
+
 ## Promises
 ```js
 import html, { render } from 'evolui'
@@ -11,9 +13,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 render(
   html`
     <p>
-      Hello, ${
-        delay(1000).then(() => 'World!')
-      }
+      Hello, ${delay(1000).then(() => 'World!')}
     </p>
   `,
   document.body

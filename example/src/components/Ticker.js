@@ -1,4 +1,4 @@
-import html from '../html'
+import html from 'evolui'
 import { Observable } from 'rxjs'
 
 const Ticker = () => html`

@@ -1,6 +1,6 @@
 import io from 'socket.io-client'
 import { Observable } from 'rxjs'
-import html from '../html'
+import html from 'evolui'
 
 const socket = io('https://chat-server-dkkxygrves.now.sh')
 

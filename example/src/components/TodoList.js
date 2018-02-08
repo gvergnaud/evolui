@@ -1,4 +1,4 @@
-import html from '../html'
+import html from 'evolui'
 import Todo from './Todo'
 
 const TodoList = ({ todos }) => html`

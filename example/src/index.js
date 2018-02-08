@@ -1,5 +1,4 @@
-import html, { render } from '../../package/src'
+import html, { render } from 'evolui'
 import App from './components/App'
-import { Observable } from 'rxjs'
 
 render(App(), document.querySelector('#root'))

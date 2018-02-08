@@ -1,4 +1,4 @@
-import html from '../html'
+import html from 'evolui'
 import store, { ADD_TODO, UPDATE_TEXT } from '../store'
 
 const InputBar = () => {

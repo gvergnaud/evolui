@@ -1,4 +1,4 @@
-import html from '../html'
+import html from 'evolui'
 import store, {
   UPDATE_TODO,
   TOGGLE_EDIT_TODO,
