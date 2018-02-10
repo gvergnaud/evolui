@@ -1,4 +1,4 @@
-import { createStore } from './createStore'
+import createStore from './createStore'
 
 export const UPDATE_TEXT = 'UPDATE_TEXT'
 export const ADD_TODO = 'ADD_TODO'
