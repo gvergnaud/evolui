@@ -20,6 +20,7 @@ render(
   document.body
 )
 ```
+![Promise demo](https://github.com/gvergnaud/evolui/blob/media/gifs/evolui-1.gif?raw=true)
 
 ## Observables
 ```js
@@ -36,7 +37,7 @@ render(
   document.body
 )
 ```
-
+![Observable demo](https://github.com/gvergnaud/evolui/blob/media/gifs/evolui-2.gif?raw=true)
 
 ## Installation
 
@@ -66,6 +67,7 @@ html`
   </div>
 `
 ```
+![list demo](https://github.com/gvergnaud/evolui/blob/media/gifs/evolui-3.gif?raw=true)
 
 ## Some more interesting examples
 
@@ -92,6 +94,7 @@ render(
   document.querySelector('#root')
 )
 ```
+![mouse demo](https://github.com/gvergnaud/evolui/blob/media/gifs/evolui-4.gif?raw=true)
 
 ### A simple chat app
 ```js
@@ -128,6 +131,7 @@ const Chat = () => {
 
 render(Chat(), document.querySelector('#root'))
 ```
+![chat demo](https://github.com/gvergnaud/evolui/blob/media/gifs/evolui-5.gif?raw=true)
 
 ## Contributing
 If you find this interesting and you want to contribute, don't hesitate to open an issue or to reach me out on twitter [@GabrielVergnaud](https://twitter.com/GabrielVergnaud)!
