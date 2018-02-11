@@ -6,6 +6,12 @@ A template library that magically understands Promises and Observables.
 
 Evolui leverages template tags to automatically manage your observable subscriptions, so you only care about where the data should be displayed.
 
+## Get it
+
+```
+npm install --save evolui
+```
+
 ## Promises
 ```js
 import html, { render } from 'evolui'
@@ -24,6 +30,9 @@ render(
 
 ## Observables
 ```js
+import html, { render } from 'evolui'
+import { Observable } from 'rxjs'
+
 render(
   html`
     <p>
@@ -38,12 +47,6 @@ render(
 )
 ```
 ![Observable demo](https://github.com/gvergnaud/evolui/blob/media/gifs/evolui-2.gif?raw=true)
-
-## Installation
-
-```
-npm install --save evolui
-```
 
 
 ## Concept
@@ -91,7 +94,7 @@ render(
       <p>y: ${mouse.map(({ y }) => y)}</p>
     </div>
   `,
-  document.querySelector('#root')
+  document.body
 )
 ```
 ![mouse demo](https://github.com/gvergnaud/evolui/blob/media/gifs/evolui-4.gif?raw=true)
@@ -129,7 +132,7 @@ const Chat = () => {
   `
 }
 
-render(Chat(), document.querySelector('#root'))
+render(Chat(), document.body)
 ```
 ![chat demo](https://github.com/gvergnaud/evolui/blob/media/gifs/evolui-5.gif?raw=true)
 
