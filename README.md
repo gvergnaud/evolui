@@ -79,7 +79,7 @@ html`
 import html, { render } from 'evolui'
 import { Observable } from 'rxjs'
 
-const mouse = new Observable(observer => {
+const mouse$ = new Observable(observer => {
   observer.next({ x: 0, y: 0 })
   window.addEventListener('mousemove', e => {
     observer.next({ x: e.clientX, y: e.clientY })
@@ -90,8 +90,8 @@ render(
   html`
     <div>
       <p>Mouse position: </p>
-      <p>x: ${mouse.map(({ x }) => x)}</p>
-      <p>y: ${mouse.map(({ y }) => y)}</p>
+      <p>x: ${mouse$.map(({ x }) => x)}</p>
+      <p>y: ${mouse$.map(({ y }) => y)}</p>
     </div>
   `,
   document.body
