@@ -3,7 +3,7 @@ import { h, diff, patch } from 'virtual-dom'
 import createElement from 'virtual-dom/create-element'
 import { Observable } from 'rxjs/Observable'
 import 'rxjs/add/observable/of'
-import { createOperators, createRaf } from './utils/observables'
+import { createOperators, createRaf } from './utils'
 
 const hx = hyperx(h)
 
