@@ -1,4 +1,4 @@
 import html, { render } from 'evolui'
-import App from './components/App'
+import App from './components/StateManagement'
 
-render(App(), document.querySelector('#root'))
+render(App, document.querySelector('#root'))
