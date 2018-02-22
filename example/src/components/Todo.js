@@ -1,29 +1,23 @@
 import html from 'evolui'
-import store, {
-  UPDATE_TODO,
-  TOGGLE_EDIT_TODO,
-  STOP_EDIT_TODO,
-  REMOVE_TODO,
-  TOGGLE_TODO
-} from '../store'
+import store from '../store'
 
 const Todo = ({ todo }) => {
   const onToggleComplete = () =>
-    store.dispatch({ type: TOGGLE_TODO, id: todo.id })
+    store.actions.toggleTodo(todo.id)
 
-  const onStopEdit = () => store.dispatch({ type: STOP_EDIT_TODO, id: todo.id })
+  const onStopEdit = () => store.actions.stopEditTodo(todo.id)
 
-  const onToggle = () => store.dispatch({ type: TOGGLE_EDIT_TODO, id: todo.id })
+  const onToggle = () => store.actions.toggleEditTodo(todo.id)
 
-  const onInput = e => {
-    store.dispatch({ type: UPDATE_TODO, id: todo.id, text: e.target.value })
-  }
+  const onInput = e =>
+    store.actions.updateTodo({ id: todo.id, text: e.target.value })
+
 
   const onKeyDown = e => {
     if (e.which === 13) onStopEdit()
   }
 
-  const onRemove = () => store.dispatch({ type: REMOVE_TODO, id: todo.id })
+  const onRemove = () => store.actions.removeTodo(todo.id)
 
   return html`
     <li>

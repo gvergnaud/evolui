@@ -11,7 +11,7 @@ import Chat from './Chat'
 const TodoApp = () => html`
   <div>
     ${InputBar()}
-    ${store.state.switchMap(({ todos }) => TodoList({ todos }))}
+    ${store.state$.switchMap(({ todos }) => TodoList({ todos }))}
   </div>
 `
 

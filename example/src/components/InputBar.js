@@ -1,17 +1,17 @@
 import html from 'evolui'
-import store, { ADD_TODO, UPDATE_TEXT } from '../store'
+import store from '../store'
 
 const InputBar = () => {
   const onKeyDown = e => {
-    if (e.which === 13) store.dispatch({ type: ADD_TODO, text: e.target.value })
+    if (e.which === 13) store.actions.addTodo(e.target.value)
   }
 
   const onInput = e =>
-    store.dispatch({ type: UPDATE_TEXT, text: e.target.value })
+    store.actions.updateText(e.target.value)
 
   return html`
     <input
-      value="${store.state.map(({ text }) => text)}"
+      value="${store.state$.map(({ text }) => text)}"
       oninput=${onInput}
       onkeydown=${onKeyDown} />
   `

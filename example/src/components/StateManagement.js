@@ -1,39 +1,6 @@
 import html from 'evolui'
 import { Observable, Subject } from 'rxjs'
-
-const isObject = x => typeof x === 'object' && !Array.isArray(x)
-
-const proxy = state$ => new Proxy({}, {
-  get(obj, prop) {
-    return prop === '$' ? state$.distinctUntilChanged() : proxy(state$.map(s => s[prop]))
-  }
-})
-
-const createStore = (initialState, actions) => {
-  const action$ = new Subject()
-
-  const boundActions =
-    Object.entries(actions)
-      .reduce((acc, [k, f]) => ({
-        ...acc,
-        [k]: (...args) => action$.next(f(...args))
-      }), {})
-
-  const state$ =
-    action$
-      .startWith(x => x)
-      .scan((state, f) => {
-        const nextState = f(state, boundActions)
-        return isObject(nextState) ? {...state, ...nextState} : state
-      }, initialState)
-      .shareReplay(1)
-
-  return {
-    actions: boundActions,
-    state$,
-    state: proxy(state$)
-  }
-}
+import createStore from '../createStore'
 
 
 const { actions, state$, state } = createStore(
@@ -46,7 +13,7 @@ const { actions, state$, state } = createStore(
   }
 )
 
-const App = html`
+const App = props => html`
   <div>
     <button onclick="${actions.asyncAdd}">async +</button>
     <button onclick="${actions.add}">+</button>
@@ -54,11 +21,9 @@ const App = html`
     <button onclick="${actions.sub}">-</button>
     <input value="${state.user.name.$}" oninput="${actions.changeName}" />
     <p>Hello, my name is ${state.user.name.$}</p>
+    <p>${props.test}</p>
   </div>
 `
-
-export default App
-
 
 // problem of this way compared to intent -> model -> view of cyle is that
 // it doesn't make creating actions based on combination of event as easy.
@@ -67,7 +32,7 @@ export default App
 // intent of the user.
 //
 
-const App2 = props => {
+const App2 = () => {
   const intents = actions => ({
     add: actions.add.merge(actions.asyncAdd.flatMap(() => Observable.timeout(1000))),
   })
@@ -92,7 +57,60 @@ const App2 = props => {
       <button onclick="${actions.sub}">-</button>
       <input value="${state.name}" oninput="${actions.changeName}" />
       <p>Hello, my name is ${state.name}</p>
-      <p>${props.test}</p>
     </div>
   `
 }
+
+const App3 = () => {
+  const createSourceProxy = () => new Proxy({}, {
+    get(obj, key) {
+      return obj[key] ? obj[key] : obj[key] = new Subject()
+    }
+  })
+
+  const mapping = map => {
+    const sources = createSourceProxy()
+    return {
+      sources,
+      sinks: map(sources)
+    }
+  }
+
+  const {sources, sinks} = mapping(sources => ({
+    add: sources.add.merge(sources.asyncAdd.flatMap(() => Observable.timeout(1000))),
+    sub: sources.sub,
+    changeName: sources.changeName,
+  }))
+
+  const initialState = {
+    count: 1,
+    name: 'gabriel'
+  }
+
+  const state = Observable.merge(
+    sinks.add.map(() => state => ({ count: state.count + 1 })),
+    sinks.sub.map(() => state => ({ count: state.count - 1 })),
+    sinks.changeName.map(name => () => ({ name })),
+  )
+    .startWith(x => x)
+    .scan((state, f) => {
+      const nextState = f(state)
+      return {...state, ...nextState}
+    }, initialState)
+    .shareReplay(1)
+
+
+  // this could be called only once statically. state would be an object of observables
+  return html`
+    <div>
+      <button onclick="${sources.asyncAdd}">async +</button>
+      <button onclick="${sources.add}">+</button>
+      <span>${state.map(s => s.count)}</span>
+      <button onclick="${sources.sub}">-</button>
+      <input value="${state.map(s => s.name)}" oninput="${sources.changeName}" />
+      <p>Hello, my name is ${state.map(s => s.name)}</p>
+    </div>
+  `
+}
+
+export default App

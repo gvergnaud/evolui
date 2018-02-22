@@ -23,7 +23,7 @@ const {
 
 const raf = createRaf(Observable)
 
-// data Variable a = a | Observable (Variable a) | [Variable a]
+// data Variable a = a | Promise (Variable a) | Observable (Variable a) | [Variable a]
 // toAStream :: Variable a -> Observable a
 const toAStream = variable =>
   Array.isArray(variable)
