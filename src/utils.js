@@ -2,13 +2,14 @@ import curry from 'lodash/fp/curry'
 
 const Nothing = 'Nothing'
 
-const init = xs => xs.slice(0, xs.length - 1)
-const last = xs => xs[xs.length - 1]
-const compose = (...fns) => x => fns.reduceRight((value, f) => f(value), x)
-const pipe = (...fs) => fs.reduce((acc, f) => x => f(acc(x)), x => x)
+export const init = xs => xs.slice(0, xs.length - 1)
+export const last = xs => xs[xs.length - 1]
+export const dropRight = (n, xs) => xs.slice(0, xs.length - n)
+export const compose = (...fns) => x => fns.reduceRight((value, f) => f(value), x)
+export const pipe = (...fs) => fs.reduce((acc, f) => x => f(acc(x)), x => x)
 
-const isPromise = p => p && typeof p.then === 'function'
-const isObservable = x => x && typeof x.subscribe === 'function'
+export const isPromise = p => p && typeof p.then === 'function'
+export const isObservable = x => x && typeof x.subscribe === 'function'
 
 export const createOperators = Observable => {
   const fromPromise = p =>
@@ -36,7 +37,8 @@ export const createOperators = Observable => {
 
       const subs = observables.map((obs, index) =>
         obs.subscribe({
-          error: () => {
+          error: (e) => {
+            console.error(e)
             active[index] = false
             if (active.every(x => x === false)) observer.complete()
           },
@@ -133,8 +135,6 @@ export const createOperators = Observable => {
     obs.length ? combineLatest(...obs, (...xs) => xs) : Observable.of([])
 
   return {
-    isPromise,
-    isObservable,
     sample,
     map,
     switchMap,
@@ -143,8 +143,6 @@ export const createOperators = Observable => {
     startWith,
     toObservable,
     fromPromise,
-    compose,
-    pipe
   }
 }
 

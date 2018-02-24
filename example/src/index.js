@@ -1,4 +1,4 @@
-import html, { render } from 'evolui'
-import App from './components/App'
+import html, { render } from '../../src'
+import App from './components/SpringAnimation'
 
 render(App(), document.querySelector('#root'))
