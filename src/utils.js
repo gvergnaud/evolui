@@ -94,13 +94,13 @@ export const createOperators = Observable => {
           })
         },
         error: e => observer.error(e),
-        complete: () => observer.complete()
+        complete: () => {}
       })
     )
   })
 
   const sample = curry((sampleStream, stream) => {
-    var none = Symbol('None')
+    const none = Symbol('None')
     return new Observable(observer => {
       let latestValue = none
       const sub = stream.subscribe({
