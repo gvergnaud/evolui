@@ -93,5 +93,13 @@ const ease = (stiffness, damping) => {
   }
 }
 
+const cache = new Map()
 
-export default ease
+const getEase = (stiffness, damping, id) => {
+  if (id === undefined) return ease(stiffness, damping)
+
+  if (!cache.has(id)) cache.set(id, ease(stiffness, damping))
+  return cache.get(id)
+}
+
+export default getEase

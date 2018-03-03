@@ -1,6 +1,6 @@
 import { Observable, Subject } from 'rxjs';
-import html, { text } from '../../../../src';
-import ease from './ease';
+import html from 'evolui'
+import ease from '../ease';
 
 const addPosition = e => {
   e.position = e.type.match(/^touch/)
@@ -125,7 +125,7 @@ const GrabbableCircle = ({ exploadEvery, onDragStart, drag$, isDragging$, radius
           .switchMap(bool =>
             bool
               ? Observable.empty()
-              : Observable.interval(850)
+              : Observable.interval(900)
                 .map(x => x)
                 .map(x => x % exploadEvery ? randomPosition() : center())
                 .startWith(randomPosition())
@@ -146,8 +146,8 @@ const GrabbableCircle = ({ exploadEvery, onDragStart, drag$, isDragging$, radius
               y: y - (radius + i),
             })),
           isDragging$,
-          stiffness: 150 + 15 * i,
-          damping: 22,
+          stiffness: 120 + 15 * i,
+          damping: 25 - i * 2,
           radius: radius + i,
           color: `rgba(${r}, ${g}, ${b}, ${i / xs.length})`
         })
