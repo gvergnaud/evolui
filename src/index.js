@@ -65,6 +65,7 @@ const htmlTag = (strings, ...variables) =>
 const html = (strings, ...variables) =>
   pipe(
     toAStream,
+    startWith([]),
     sample(raf),
     map(variables => htmlTag(strings, ...variables))
   )(variables)
@@ -80,6 +81,7 @@ const textTag = (strings, ...variables) =>
 const text = (strings, ...variables) =>
   pipe(
     toAStream,
+    startWith([]),
     sample(raf),
     map(variables => textTag(strings, ...variables))
   )(variables)

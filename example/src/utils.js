@@ -10,7 +10,6 @@ export const listen = (element, event) =>
 export const createFetcher = getPromise => {
   const cache = new Map()
   return params => {
-    console.log(cache[params])
     if (cache[params]) return cache[params]
     cache[params] = getPromise(params)
     return cache[params]
