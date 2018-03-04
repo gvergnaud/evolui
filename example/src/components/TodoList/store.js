@@ -1,4 +1,4 @@
-import createStore from './createStore'
+import createStore from '../../createStore'
 
 export const UPDATE_TEXT = 'UPDATE_TEXT'
 export const ADD_TODO = 'ADD_TODO'
@@ -20,6 +20,7 @@ const reducer = (state, action) => {
         ...state,
         text: action.text
       }
+
     case ADD_TODO:
       return {
         ...state,
@@ -94,6 +95,7 @@ const reducer = (state, action) => {
         ...state,
         todos: state.todos.filter(todo => todo.id !== action.id)
       }
+
     default:
       return state
   }

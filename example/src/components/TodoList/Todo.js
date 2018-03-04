@@ -5,7 +5,7 @@ import store, {
   STOP_EDIT_TODO,
   REMOVE_TODO,
   TOGGLE_TODO
-} from '../store'
+} from './store'
 
 const Todo = ({ todo }) => {
   const onToggleComplete = () =>
@@ -39,7 +39,6 @@ const Todo = ({ todo }) => {
             `
           : html`
               <span
-                ondblclick=${onToggle}
                 onclick=${onToggleComplete}
                 style="text-decoration: ${
                   todo.isComplete ? 'line-through' : 'none'
@@ -49,6 +48,7 @@ const Todo = ({ todo }) => {
             `
       }
       <button onclick=${onRemove}>X</button>
+      <button onclick=${onToggle}>Edit</button>
     </li>
   `
 }

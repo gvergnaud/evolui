@@ -35,7 +35,7 @@ const raf = createRaf(Observable)
 //   | [Variable a]
 
 // toAStream :: Variable a -> Observable a
-export const toAStream = variable =>
+const toAStream = variable =>
   Array.isArray(variable)
     ? all(variable.map(toAStream))
     : isObservable(variable)
@@ -103,4 +103,4 @@ const render = (component, element) => {
 }
 
 export default html
-export { text, render }
+export { text, render, raf }
