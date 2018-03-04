@@ -18,9 +18,10 @@ const windowDimension$ = Observable.fromEvent(window, 'resize')
 const colCount$ =
   windowDimension$
     .map(({ width }) =>
-      width < 680 ? 1
-      : width < 1024 ? 2
-      : 3
+      width < 480 ? 1
+      : width < 960 ? 2
+      : width < 1280 ? 3
+      : 4
     )
 
 const gutterSize = 10
@@ -73,7 +74,7 @@ const Grid = ({ userId$ }) => {
               models.reduce((grid, model, index) => {
                 const cardAbove = grid[index - colCount]
 
-                const height = Math.max(300, Math.min(800, model.name.length * 20))
+                const height = Math.max(300, Math.min(800, model.name.length * 30))
 
                 const width$ =
                   windowDimension$

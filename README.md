@@ -4,7 +4,8 @@
 
 A template library that magically understands Promises and Observables.
 
-Evolui leverages template tags to automatically manage your observable subscriptions, so you only care about where the data should be displayed.
+Evolui takes care of refreshing your UI when promises and observables emit new values.
+You can only care about where the data should be displayed.
 
 ## Get it
 
@@ -72,7 +73,45 @@ html`
 ```
 ![list demo](https://github.com/gvergnaud/evolui/blob/media/gifs/evolui-3.gif?raw=true)
 
-## Some more interesting examples
+
+## Animations
+
+Evolui exports a **spring** animation helper called ease.
+```typescript
+ease: (stiffness: number, damping: number) => number => Observable<number>
+```
+You just have to add `.switchMap(ease(<stiffness>, <damping>))` to any of your observable to make it animated.
+
+```js
+import html, { render } from 'evolui'
+import ease from 'evolui/lib/ease'
+import { Observable } from 'rxjs'
+
+const position$ = new Observable(observer => {
+  observer.next({ x: 0, y: 0 })
+  window.addEventListener('click', e => {
+    observer.next({ x: e.clientX, y: e.clientY })
+  })
+})
+
+render(
+  html`
+    <div>
+      <div
+        class="circle"
+        style="transform: translate(
+          ${position$.map(m => m.x).switchMap(ease(120, 18))}px,
+          ${position$.map(m => m.y).switchMap(ease(120, 18))}px
+        );" />
+    </div>
+  `,
+  document.body
+)
+```
+
+![animation demo](https://raw.githubusercontent.com/gvergnaud/evolui/c445de8161c151c24d84d0ad61af0a6185f0d62d/dot-animation.gif)
+
+## More examples
 
 ### Mouse tracker
 ```js
