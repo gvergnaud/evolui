@@ -1,4 +1,4 @@
-import html from '../../../lib/evolui'
+import html from 'evolui'
 
 const Select = ({ options, onChange, value$ }) => html`
   <select onchange="${e => onChange(e.target.value)}">

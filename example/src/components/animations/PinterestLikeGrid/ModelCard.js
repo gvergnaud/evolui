@@ -1,4 +1,4 @@
-import html from '../../../../../lib/evolui'
+import html from 'evolui'
 import classNames from './index.css'
 
 

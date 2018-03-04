@@ -1,6 +1,6 @@
 import {Observable, Subject} from 'rxjs'
-import html, {raf} from '../../../../../lib/evolui'
-import ease from '../../../../../lib/ease'
+import html, {raf} from 'evolui'
+import ease from 'evolui/lib/ease'
 import {createFetcher, createState, all} from '../../../utils'
 
 import Select from './../../Select'
