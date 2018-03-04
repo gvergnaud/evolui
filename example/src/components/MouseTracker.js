@@ -1,7 +1,7 @@
 import html from 'evolui'
-import { listen } from '../utils/observables'
+import { Observable } from 'rxjs'
 
-const mouse = listen(window, 'mousemove')
+const mouse = Observable.fromEvent(window, 'mousemove')
   .map(e => ({
     x: e.clientX,
     y: e.clientY

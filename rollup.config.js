@@ -2,10 +2,10 @@ import babel from 'rollup-plugin-babel'
 import nodeResolve from 'rollup-plugin-node-resolve'
 import commonjs from 'rollup-plugin-commonjs'
 
-export default {
-  input: 'src/index.js',
+const createConfig = (input, output) => ({
+  input,
   output: {
-    file: 'lib/evolui.js',
+    file: output,
     format: 'cjs'
   },
   plugins: [
@@ -21,6 +21,11 @@ export default {
     }),
     babel({
       exclude: 'node_modules/**'
-    }),
+    })
   ]
-};
+})
+
+export default [
+  createConfig('src/index.js', 'lib/evolui.js'),
+  createConfig('src/ease.js', 'lib/ease.js')
+];

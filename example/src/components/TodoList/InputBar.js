@@ -1,5 +1,5 @@
 import html from 'evolui'
-import store, { ADD_TODO, UPDATE_TEXT } from '../store'
+import store, { ADD_TODO, UPDATE_TEXT } from './store'
 
 const InputBar = () => {
   const onKeyDown = e => {
