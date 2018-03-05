@@ -113,67 +113,11 @@ render(
 
 ## More examples
 
-### Mouse tracker
-```js
-import html, { render } from 'evolui'
-import { Observable } from 'rxjs'
+- Simple Animation [Demo](https://72wkn61x21.codesandbox.io/) — [see code](https://codesandbox.io/s/72wkn61x21)
+- Complexe Animation [Demo](https://31z431n4m.codesandbox.io/) — [see code](https://codesandbox.io/s/31z431n4m)
+- Animated Pinterest Like Grid [Demo](https://wqyl0xmo47.codesandbox.io/) — [see code](https://codesandbox.io/s/wqyl0xmo47)
 
-const mouse$ = new Observable(observer => {
-  observer.next({ x: 0, y: 0 })
-  window.addEventListener('mousemove', e => {
-    observer.next({ x: e.clientX, y: e.clientY })
-  })
-})
-
-render(
-  html`
-    <div>
-      <p>Mouse position: </p>
-      <p>x: ${mouse$.map(({ x }) => x)}</p>
-      <p>y: ${mouse$.map(({ y }) => y)}</p>
-    </div>
-  `,
-  document.body
-)
-```
-![mouse demo](https://github.com/gvergnaud/evolui/blob/media/gifs/evolui-4.gif?raw=true)
-
-### A simple chat app
-```js
-import io from 'socket.io-client'
-import { Observable } from 'rxjs'
-import html, { render } from 'evolui'
-
-const socket = io('https://chat-server-dkkxygrves.now.sh')
-
-const message$ = new Observable(observer => {
-  socket.on('message', message => observer.next(message))
-})
-const sendMessage = message => socket.emit('message', message)
-
-const Chat = () => {
-  const onKeyDown = ({ which, target }) => {
-    if (which === 13) {
-      sendMessage(target.value)
-      target.value = ''
-    }
-  }
-
-  return html`
-    <div>
-      <input onkeydown=${onKeyDown} />
-      <div>
-        ${message$
-          .scan((acc, x) => [...acc, x], [])
-          .map(messages => messages.map(message => html`<p>${message}</p>`))}
-      </div>
-    </div>
-  `
-}
-
-render(Chat(), document.body)
-```
-![chat demo](https://github.com/gvergnaud/evolui/blob/media/gifs/evolui-5.gif?raw=true)
+**To see the more example, visite the [`example`](https://github.com/gvergnaud/evolui/tree/master/example) folder.**
 
 ## Contributing
 If you find this interesting and you want to contribute, don't hesitate to open an issue or to reach me out on twitter [@GabrielVergnaud](https://twitter.com/GabrielVergnaud)!
