@@ -1,6 +1,6 @@
 import { Observable, Subject } from 'rxjs';
 import html from 'evolui'
-import ease from 'evolui/lib/ease';
+import ease from 'evolui/ease';
 
 const toPosition = e => {
   e.position = e.type.match(/^touch/)

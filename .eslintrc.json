@@ -1,21 +1,11 @@
 {
     "parser": "babel-eslint",
+    "extends": ["eslint:recommended"],
     "plugins": ["prettier", "babel"],
     "root": true,
-    "parserOptions": {
-        "ecmaVersion": 6,
-        "sourceType": "module",
-        "ecmaFeatures": {
-            "jsx": true,
-            "experimentalObjectRestSpread": true,
-            "modules": true
-        }
-    },
     "env": {
         "browser": true,
-        "es6": true,
-        "node": false,
-        "mocha": false
+        "es6": true
     },
     "globals": {
         "describe": false,

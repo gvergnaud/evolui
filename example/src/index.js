@@ -13,14 +13,14 @@ import PinterestLikeGrid from './components/animations/PinterestLikeGrid'
 
 const selectedExample = createState('TodoList')
 const examples = [
-  { title: 'TodoList', value: 'TodoList' },
-  { title: 'SimpleAnimation', value: 'SimpleAnimation' },
-  { title: 'ComplexeAnimation', value: 'ComplexeAnimation' },
-  { title: 'PinterestLikeGrid', value: 'PinterestLikeGrid' },
-  { title: 'Chat', value: 'Chat' },
-  { title: 'MouseTracker', value: 'MouseTracker' },
-  { title: 'HttpRequest', value: 'HttpRequest' },
-  { title: 'Ticker', value: 'Ticker' },
+  { title: 'TodoList', value: 'TodoList' },
+  { title: 'SimpleAnimation', value: 'SimpleAnimation' },
+  { title: 'ComplexeAnimation', value: 'ComplexeAnimation' },
+  { title: 'PinterestLikeGrid', value: 'PinterestLikeGrid' },
+  { title: 'Chat', value: 'Chat' },
+  { title: 'MouseTracker', value: 'MouseTracker' },
+  { title: 'HttpRequest', value: 'HttpRequest' },
+  { title: 'Ticker', value: 'Ticker' },
 ]
 
 render(

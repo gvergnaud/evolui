@@ -1,6 +1,6 @@
-import {Observable} from 'rxjs/Observable'
+import Observable from './Observable'
 
-const secondPerFrame = 0.016
+const defaultSecondPerFrame = 0.016
 
 // stepper :: Number -> Number -> Number -> Number? -> Number? -> Number? -> [Number, Number]
 let reusedTuple = [0, 0]
@@ -10,6 +10,7 @@ function stepper(
   destValue,
   stiffness = 170,
   damping = 20,
+  secondPerFrame = defaultSecondPerFrame,
   precision = 0.1
 ) {
   // Spring stiffness, in kg / s^2
@@ -45,13 +46,15 @@ function stepper(
 
 const rafThrottle = f => {
   var shouldExecute = true
-  return (...args) => {
+  let args = []
+  return (..._args) => {
+    args = _args
     if (!shouldExecute) return
     shouldExecute = false
 
     window.requestAnimationFrame(() => {
       shouldExecute = true
-      f.apply(f, args)
+      f(...args)
     })
   }
 }
@@ -61,7 +64,6 @@ const ease = (stiffness, damping) => {
   let velocity = 0
   let destValue
 
-  let i = 0
   return x => {
     destValue = x
     if (value === undefined) value = x
@@ -75,11 +77,13 @@ const ease = (stiffness, damping) => {
           velocity,
           destValue,
           stiffness,
-          damping
+          damping,
         )
 
         observer.next(value)
-        if (velocity !== 0 && isRunning) run()
+        if (velocity !== 0 && isRunning) {
+          run()
+        }
       })
 
       run()
