@@ -1,49 +1,32 @@
-import html, { render } from '../../src'
-import {createState} from './utils'
-import Select from './components/Select'
+import { Observable } from 'rxjs'
+import { createHtml } from '../../src'
+import React from 'react'
+import { render } from 'react-dom'
 
-import Ticker from './components/Ticker'
-import TodoList from './components/TodoList'
-import MouseTracker from './components/MouseTracker'
-import HttpRequest from './components/HttpRequest'
-import Chat from './components/Chat'
-import SimpleAnimation from './components/animations/SimpleAnimation'
-import ComplexeAnimation from './components/animations/ComplexeAnimation'
-import PinterestLikeGrid from './components/animations/PinterestLikeGrid'
+const html = createHtml(React.createElement)
 
-const selectedExample = createState('TodoList')
-const examples = [
-  { title: 'TodoList', value: 'TodoList' },
-  { title: 'SimpleAnimation', value: 'SimpleAnimation' },
-  { title: 'ComplexeAnimation', value: 'ComplexeAnimation' },
-  { title: 'PinterestLikeGrid', value: 'PinterestLikeGrid' },
-  { title: 'Chat', value: 'Chat' },
-  { title: 'MouseTracker', value: 'MouseTracker' },
-  { title: 'HttpRequest', value: 'HttpRequest' },
-  { title: 'Ticker', value: 'Ticker' },
-]
+const wrap = evoluiComponent =>
+  class Wrap extends React.Component {
+    constructor(props) {
+      super(props)
+      this.state = { element: <div /> }
+    }
 
-render(
-  html`
-    <div>
-      ${Select({
-        value$: selectedExample.stream,
-        onChange: selectedExample.set,
-        options: examples
-      })}
+    componentDidMount() {
+      evoluiComponent(this.props).forEach(element => this.setState({ element }))
+    }
 
-      ${selectedExample.stream.map(v =>
-        v === 'TodoList' ? TodoList()
-        : v === 'SimpleAnimation' ? SimpleAnimation()
-        : v === 'ComplexeAnimation' ? ComplexeAnimation()
-        : v === 'PinterestLikeGrid' ? PinterestLikeGrid()
-        : v === 'Chat' ? Chat()
-        : v === 'MouseTracker' ? MouseTracker()
-        : v === 'HttpRequest' ? HttpRequest()
-        : v === 'Ticker' ? Ticker()
-        : null
-      )}
-    </div>
-  `,
-  document.querySelector('#root')
-)
+    render() {
+      return this.state.element
+    }
+  }
+
+const App = () => html`
+  <div>
+    Hello ${Observable.interval(1000)}
+  </div>
+`
+
+const ReactApp = wrap(App)
+
+render(<ReactApp />, document.querySelector('#root'))
