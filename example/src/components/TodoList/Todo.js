@@ -1,13 +1,13 @@
 import html from 'evolui'
-import store, {
+import {
   UPDATE_TODO,
   TOGGLE_EDIT_TODO,
   STOP_EDIT_TODO,
   REMOVE_TODO,
   TOGGLE_TODO
-} from './store'
+} from './actions'
 
-const Todo = ({ todo }) => {
+const Todo = ({ todo, store }) => {
   const onToggleComplete = () =>
     store.dispatch({ type: TOGGLE_TODO, id: todo.id })
 

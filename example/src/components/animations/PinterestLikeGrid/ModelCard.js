@@ -12,6 +12,7 @@ const getImageUrl = ({ thumbnails: { images } }) =>
 
 const ModelCard = ({ model, x, y, width, height }) => html`
   <a
+    key="${model.uid}"
     target="_blank"
     href="${model.viewerUrl}"
     class="${classNames.card}"

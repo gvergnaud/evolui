@@ -1,6 +1,6 @@
 import {Observable, Subject} from 'rxjs'
-import html, {raf} from 'evolui'
-import ease from 'evolui/lib/ease'
+import html from 'evolui'
+import ease from 'evolui/ease'
 import {createFetcher, createState, all} from '../../../utils'
 
 import Select from './../../Select'
@@ -8,6 +8,25 @@ import classNames from './index.css'
 import {getLikes} from './Api'
 import ModelCard from './ModelCard'
 
+
+const raf = new Observable(observer => {
+  let isSubscribed = true
+
+  const loop = () => {
+    if (isSubscribed) {
+      observer.next()
+      window.requestAnimationFrame(loop)
+    }
+  }
+
+  window.requestAnimationFrame(loop)
+
+  return {
+    unsubscribe: () => {
+      isSubscribed = false
+    }
+  }
+})
 
 const windowDimension$ = Observable.fromEvent(window, 'resize')
   .map(() => ({ width: window.innerWidth, height: window.innerHeight }))
@@ -104,8 +123,8 @@ const Grid = ({ userId$ }) => {
             models.map(([dimension, model]) =>
                ModelCard({
                  model,
-                 x: dimension.x$.switchMap(ease(120, 18, model.uid + 'x')),
-                 y: dimension.y$.switchMap(ease(240, 36, model.uid + 'y')),
+                 x: dimension.x$.switchMap(ease(150, 18, model.uid + 'x')),
+                 y: dimension.y$.switchMap(ease(120, 25, model.uid + 'y')),
                  height: dimension.height$.switchMap(ease(170, 20, model.uid + 'height')),
                  width: dimension.width$.switchMap(ease(170, 20, model.uid + 'width'))
               })

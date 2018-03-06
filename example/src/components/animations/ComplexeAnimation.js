@@ -1,6 +1,6 @@
 import { Observable, Subject } from 'rxjs';
 import html from 'evolui'
-import ease from 'evolui/lib/ease';
+import ease from 'evolui/ease';
 
 const addPosition = e => {
   e.position = e.type.match(/^touch/)
@@ -135,23 +135,25 @@ const GrabbableCircle = ({ exploadEvery, onDragStart, drag$, isDragging$, radius
 
 
   return html`
-    ${Array(7)
-      .fill(0)
-      .map((_, i, xs) =>
-        Circle({
-          onDragStart,
-          position$: position$
-            .map(({ x, y }) => ({
-              x: x - (radius + i),
-              y: y - (radius + i),
-            })),
-          isDragging$,
-          stiffness: 120 + 15 * i,
-          damping: 25 - i * 2,
-          radius: radius + i,
-          color: `rgba(${r}, ${g}, ${b}, ${i / xs.length})`
-        })
-    )}
+    <div>
+      ${Array(7)
+        .fill(0)
+        .map((_, i, xs) =>
+          Circle({
+            onDragStart,
+            position$: position$
+              .map(({ x, y }) => ({
+                x: x - (radius + i),
+                y: y - (radius + i),
+              })),
+            isDragging$,
+            stiffness: 120 + 15 * i,
+            damping: 25 - i * 2,
+            radius: radius + i,
+            color: `rgba(${r}, ${g}, ${b}, ${i / xs.length})`
+          })
+      )}
+    </div>
   `;
 }
 
