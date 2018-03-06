@@ -117,7 +117,7 @@ render(
 - Complexe Animation [Demo](https://31z431n4m.codesandbox.io/) — [see code](https://codesandbox.io/s/31z431n4m)
 - Animated Pinterest Like Grid [Demo](https://wqyl0xmo47.codesandbox.io/) — [see code](https://codesandbox.io/s/wqyl0xmo47)
 
-**To see the more example, visite the [`example`](https://github.com/gvergnaud/evolui/tree/master/example) folder.**
+**To see more example, visite the [`example`](https://github.com/gvergnaud/evolui/tree/master/example) folder.**
 
 ## Contributing
 If you find this interesting and you want to contribute, don't hesitate to open an issue or to reach me out on twitter [@GabrielVergnaud](https://twitter.com/GabrielVergnaud)!
