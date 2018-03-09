@@ -14,7 +14,7 @@ export const isObservable = x => x && typeof x.subscribe === 'function'
 export const createOperators = Observable => {
   const fromPromise = p =>
     new Observable(observer => {
-      p.then(x => observer.next(x)).catch(e => observer.complete())
+      p.then(x => observer.next(x)).catch(() => observer.complete())
     })
 
   const toObservable = x => (isObservable(x) ? x : Observable.of(x))

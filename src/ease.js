@@ -61,7 +61,6 @@ const ease = (stiffness, damping) => {
   let velocity = 0
   let destValue
 
-  let i = 0
   return x => {
     destValue = x
     if (value === undefined) value = x

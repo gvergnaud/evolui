@@ -1,7 +1,4 @@
-import { Subject } from 'rxjs/Subject'
-import 'rxjs/add/operator/scan'
-import 'rxjs/add/operator/startWith'
-import 'rxjs/add/operator/shareReplay'
+import { Subject } from 'rxjs'
 
 const createStore = (reducer, initialState, epic = x => x) => {
   const dispatcher = new Subject()

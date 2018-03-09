@@ -1,6 +1,6 @@
 import { Observable, Subject } from 'rxjs';
 import html from 'evolui'
-import ease from 'evolui/lib/ease';
+import ease from 'evolui/ease';
 
 const addPosition = e => {
   e.position = e.type.match(/^touch/)
@@ -141,7 +141,7 @@ const GrabbableCircle = ({ exploadEvery, onDragStart, drag$, isDragging$, radius
         Circle({
           onDragStart,
           position$: position$
-            .map(({ x, y }) => ({
+            .map(({ x, y }) => ({
               x: x - (radius + i),
               y: y - (radius + i),
             })),
@@ -159,6 +159,126 @@ export default () => {
   const { start, drag$, isDragging$ } = createDragHandler();
   return html`
     <div>
+      ${GrabbableCircle({
+        radius: 50,
+        r: 57,
+        g: 77,
+        b: 255,
+        onDragStart: start,
+        drag$,
+        isDragging$,
+        exploadEvery: 2,
+      })}
+      ${GrabbableCircle({
+        radius: 30,
+        r: 249,
+        g: 0,
+        b: 114,
+        onDragStart: start,
+        drag$,
+        isDragging$,
+        exploadEvery: 2,
+      })}
+      ${GrabbableCircle({
+        radius: 15,
+        r: 5,
+        g: 241,
+        b: 163,
+        onDragStart: start,
+        drag$,
+        isDragging$,
+        exploadEvery: 4,
+      })}
+      ${GrabbableCircle({
+        radius: 50,
+        r: 57,
+        g: 77,
+        b: 255,
+        onDragStart: start,
+        drag$,
+        isDragging$,
+        exploadEvery: 2,
+      })}
+      ${GrabbableCircle({
+        radius: 30,
+        r: 249,
+        g: 0,
+        b: 114,
+        onDragStart: start,
+        drag$,
+        isDragging$,
+        exploadEvery: 2,
+      })}
+      ${GrabbableCircle({
+        radius: 15,
+        r: 5,
+        g: 241,
+        b: 163,
+        onDragStart: start,
+        drag$,
+        isDragging$,
+        exploadEvery: 4,
+      })}
+      ${GrabbableCircle({
+        radius: 50,
+        r: 57,
+        g: 77,
+        b: 255,
+        onDragStart: start,
+        drag$,
+        isDragging$,
+        exploadEvery: 2,
+      })}
+      ${GrabbableCircle({
+        radius: 30,
+        r: 249,
+        g: 0,
+        b: 114,
+        onDragStart: start,
+        drag$,
+        isDragging$,
+        exploadEvery: 2,
+      })}
+      ${GrabbableCircle({
+        radius: 15,
+        r: 5,
+        g: 241,
+        b: 163,
+        onDragStart: start,
+        drag$,
+        isDragging$,
+        exploadEvery: 4,
+      })}
+      ${GrabbableCircle({
+        radius: 50,
+        r: 57,
+        g: 77,
+        b: 255,
+        onDragStart: start,
+        drag$,
+        isDragging$,
+        exploadEvery: 2,
+      })}
+      ${GrabbableCircle({
+        radius: 30,
+        r: 249,
+        g: 0,
+        b: 114,
+        onDragStart: start,
+        drag$,
+        isDragging$,
+        exploadEvery: 2,
+      })}
+      ${GrabbableCircle({
+        radius: 15,
+        r: 5,
+        g: 241,
+        b: 163,
+        onDragStart: start,
+        drag$,
+        isDragging$,
+        exploadEvery: 4,
+      })}
       ${GrabbableCircle({
         radius: 50,
         r: 57,

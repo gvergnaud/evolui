@@ -48,3 +48,5 @@ export const createReactiveTag = tagFunction => (strings, ...variables) =>
     sample(raf),
     map(variables => tagFunction(strings, ...variables))
   )(variables)
+
+export { map }
