@@ -26,7 +26,10 @@ const Todo = ({ todo, store }) => {
   const onRemove = () => store.dispatch({ type: REMOVE_TODO, id: todo.id })
 
   return html`
-    <li>
+    <li
+      oncreate="${() => console.log('todo created!', todo.text)}"
+      onupdate="${() => console.log('todo updated!', todo.text)}"
+      onremove="${() => console.log('todo removed ;(', todo.text)}">
       ${
         todo.isEditing
           ? html`
