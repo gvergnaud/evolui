@@ -27,9 +27,9 @@ const Todo = ({ todo, store }) => {
 
   return html`
     <li
-      oncreate="${() => console.log('todo created!', todo.text)}"
-      onupdate="${() => console.log('todo updated!', todo.text)}"
-      onremove="${() => console.log('todo removed ;(', todo.text)}">
+      mount="${() => console.log('todo created!', todo.text)}"
+      update="${() => console.log('todo updated!', todo.text)}"
+      unmount="${() => console.log('todo removed ;(', todo.text)}">
       ${
         todo.isEditing
           ? html`

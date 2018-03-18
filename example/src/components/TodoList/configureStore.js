@@ -7,7 +7,7 @@ import {
   STOP_EDIT_TODO,
   TOGGLE_TODO,
   UPDATE_TODO,
-  REMOVE_TODO,
+  REMOVE_TODO
 } from './actions'
 
 const initialState = {

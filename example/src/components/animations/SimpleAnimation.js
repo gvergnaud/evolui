@@ -1,28 +1,26 @@
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs'
 import html from 'evolui'
-import ease from 'evolui/ease';
+import ease from 'evolui/ease'
 
 const toPosition = e => {
   e.position = e.type.match(/^touch/)
     ? { x: e.touches[0].clientX, y: e.touches[0].clientY }
-    : { x: e.clientX, y: e.clientY };
+    : { x: e.clientX, y: e.clientY }
 
-  return e;
-};
+  return e
+}
 
 const position$ = Observable.merge(
   Observable.fromEvent(window, 'mousemove').map(toPosition),
   Observable.fromEvent(window, 'touchmove').map(toPosition)
-).startWith({ x: 0, y: 0 });
+).startWith({ x: 0, y: 0 })
 
-const Circle = (
-  {
-    color = 'purple',
-    radius = 25,
-    stiffness = 120,
-    damping = 20,
-  } = {}
-) => {
+const Circle = ({
+  color = 'purple',
+  radius = 25,
+  stiffness = 120,
+  damping = 20
+} = {}) => {
   return html`
     <div
       style="
@@ -44,8 +42,8 @@ const Circle = (
         );
       ">
     </div>
-  `;
-};
+  `
+}
 
 export default () => html`
   <div>
