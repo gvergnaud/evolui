@@ -77,7 +77,7 @@ const ease = (stiffness, damping) => {
           velocity,
           destValue,
           stiffness,
-          damping,
+          damping
         )
 
         observer.next(value)
