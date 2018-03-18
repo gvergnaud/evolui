@@ -1,15 +1,21 @@
 {
-  "presets": [
-      ["env", { "modules": false }]
+  "presets": [["env", { "modules": false }]],
+  "plugins": [
+    "transform-es2017-object-entries",
+    "transform-object-rest-spread",
+    "external-helpers"
   ],
   "env": {
     "test": {
       "presets": [
-        ["env", {
-          "targets": {
-            "node": "current"
+        [
+          "env",
+          {
+            "targets": {
+              "node": "current"
+            }
           }
-        }]
+        ]
       ]
     }
   }

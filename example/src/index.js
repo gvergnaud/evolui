@@ -1,5 +1,5 @@
-import html, { render } from '../../src'
-import {createState} from './utils'
+import html, { render } from 'evolui'
+import { createState } from './utils'
 import Select from './components/Select'
 
 import Ticker from './components/Ticker'
@@ -20,8 +20,19 @@ const examples = [
   { title: 'Chat', value: 'Chat' },
   { title: 'MouseTracker', value: 'MouseTracker' },
   { title: 'HttpRequest', value: 'HttpRequest' },
-  { title: 'Ticker', value: 'Ticker' },
+  { title: 'Ticker', value: 'Ticker' }
 ]
+
+const components = {
+  TodoList,
+  SimpleAnimation,
+  ComplexeAnimation,
+  PinterestLikeGrid,
+  Chat,
+  MouseTracker,
+  HttpRequest,
+  Ticker
+}
 
 render(
   html`
@@ -32,17 +43,7 @@ render(
         options: examples
       })}
 
-      ${selectedExample.stream.map(v =>
-        v === 'TodoList' ? TodoList()
-        : v === 'SimpleAnimation' ? SimpleAnimation()
-        : v === 'ComplexeAnimation' ? ComplexeAnimation()
-        : v === 'PinterestLikeGrid' ? PinterestLikeGrid()
-        : v === 'Chat' ? Chat()
-        : v === 'MouseTracker' ? MouseTracker()
-        : v === 'HttpRequest' ? HttpRequest()
-        : v === 'Ticker' ? Ticker()
-        : null
-      )}
+      ${selectedExample.stream.map(name => components[name]())}
     </div>
   `,
   document.querySelector('#root')

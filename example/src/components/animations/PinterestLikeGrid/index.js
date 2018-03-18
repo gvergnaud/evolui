@@ -1,6 +1,5 @@
 import { Observable, Subject } from 'rxjs'
-import html from 'evolui'
-import ease from 'evolui/ease'
+import html, { ease } from 'evolui'
 import { createFetcher, createState, all } from '../../../utils'
 
 import Select from './../../Select'

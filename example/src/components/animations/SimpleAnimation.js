@@ -1,6 +1,5 @@
 import { Observable, Subject } from 'rxjs'
-import html from 'evolui'
-import ease from 'evolui/ease'
+import html, { ease } from 'evolui'
 
 const toPosition = e => {
   e.position = e.type.match(/^touch/)

@@ -4,7 +4,7 @@ import patch, { createElement } from './patch'
 import Observable from '../Observable'
 import { createReactiveTag } from '../core'
 
-const hx = hyperx(h)
+const hx = hyperx(h, { attrToProp: false })
 
 // type Tag a b = [String] -> ...[a] -> b
 
@@ -28,25 +28,27 @@ const render = (component, element) => {
 const createRenderProcess = vdom$ =>
   new Observable(observer => {
     let domNode
+    let tree
 
     return vdom$.subscribe({
       complete: () => observer.complete(),
       error: e => observer.error(e),
       next: newTree => {
+        tree = newTree
+
         const onMount = newTree.lifecycle.mount
-        newTree.lifecycle.mount = node => {
+        tree.lifecycle.mount = node => {
           domNode = node
           if (onMount) onMount(node)
         }
 
-        newTree.lifecycle.render = node => {
+        tree.lifecycle.render = node => {
           domNode = node
-          patch(domNode, newTree)
-          return domNode
+          patch(domNode, tree)
         }
 
-        if (!domNode) observer.next(newTree)
-        else patch(domNode, newTree)
+        if (!domNode) observer.next(tree)
+        else patch(domNode, tree)
       }
     })
   })

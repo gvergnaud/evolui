@@ -22,10 +22,12 @@ function updateEvents(node, previousEvents, nextEvents) {
   }
 }
 
-function updateStyle(node, previousStyle, nextStyle) {
+function updateStyle(node, previousStyle = {}, nextStyle = {}) {
   for (const key in { ...previousStyle, ...nextStyle }) {
     const style = !nextStyle || !nextStyle[key] ? '' : nextStyle[key]
-    if (key[0] === '-') {
+    if (nextStyle[key] === previousStyle[key]) {
+      // no update needed
+    } else if (key[0] === '-') {
       node.style.setProperty(key, style)
     } else {
       node.style[key] = style
@@ -37,8 +39,9 @@ function updateAttrs(node, previousAttrs, nextAttrs) {
   for (const attrName in { ...previousAttrs, ...nextAttrs }) {
     const attrValue = nextAttrs[attrName]
 
-    if (!isEmpty(attrValue)) {
-      if (attrName === 'className') node.setAttribute('class', attrValue)
+    if (attrValue === previousAttrs[attrName]) {
+      // no update needed
+    } else if (!isEmpty(attrValue)) {
       if (attrName === 'style') {
         updateStyle(node, previousAttrs.style, nextAttrs.style)
       } else if (attrName === 'value' && node.tagName === 'INPUT') {
@@ -47,7 +50,11 @@ function updateAttrs(node, previousAttrs, nextAttrs) {
         node.setAttribute(attrName, attrValue)
       }
     } else {
-      node.removeAttribute(attrName)
+      if (attrName === 'value' && node.tagName === 'INPUT') {
+        node.value = ''
+      } else {
+        node.removeAttribute(attrName)
+      }
     }
   }
 }
@@ -67,11 +74,11 @@ function updateChildren(node, nextChildren) {
     }
   }
 
-  const removedAttrsEntries = Object.entries(node.childNodes).filter(
+  const removedChildrenEntries = Object.entries(node.childNodes).filter(
     ([index]) => !nextChildren[index]
   )
 
-  for (const [, childNode] of removedAttrsEntries) {
+  for (const [, childNode] of removedChildrenEntries) {
     removeElement(childNode)
   }
 }
@@ -127,6 +134,14 @@ function removeElement(node) {
 }
 
 export default function patch(node, vTree) {
-  if (!node[vTreeKey]) node[vTreeKey] = { events: {}, attrs: {}, children: [] }
+  if (!node[vTreeKey]) {
+    node[vTreeKey] = new VNode({
+      name: node.tagName.toLowerCase(),
+      lifecycle: {},
+      events: {},
+      attrs: {},
+      children: []
+    })
+  }
   return updateElement(node, vTree)
 }

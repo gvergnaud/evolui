@@ -1,10 +1,14 @@
-import curry from 'lodash/fp/curry'
-
 const Nothing = 'Nothing'
 
-// Misc
-export const isEmpty = x =>
-  x !== 0 && (!x || (typeof x === 'string' && !x.trim()))
+// Functions
+export const compose = (...fns) => x =>
+  fns.reduceRight((value, f) => f(value), x)
+export const pipe = (...fs) => fs.reduce((acc, f) => x => f(acc(x)), x => x)
+
+export const curry = f => (...args) =>
+  args.length >= f.length
+    ? f(...args)
+    : (...args2) => curry(f)(...args, ...args2)
 
 // Array
 export const init = xs => xs.slice(0, xs.length - 1)
@@ -14,23 +18,19 @@ export const flatMap = curry((f, xs) =>
   xs.reduce((acc, x) => acc.concat(f(x)), [])
 )
 
-// Functions
-export const compose = (...fns) => x =>
-  fns.reduceRight((value, f) => f(value), x)
-
-export const pipe = (...fs) => fs.reduce((acc, f) => x => f(acc(x)), x => x)
-
 // Object
 export const fromEntries = entries =>
   entries.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {})
-
 export const pickBy = curry((predicate, obj) =>
   fromEntries(
     Object.entries(obj).filter(([key, value]) => predicate(value, key))
   )
 )
-
 export const pick = keys => pickBy((_, key) => keys.includes(key))
+
+// Misc
+export const isEmpty = x =>
+  x !== 0 && (!x || (typeof x === 'string' && !x.trim()))
 
 // Promise
 export const isPromise = p => p && typeof p.then === 'function'

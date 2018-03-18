@@ -8,8 +8,8 @@ module.exports = {
   additionalWebpackConfig: {
     resolve: {
       alias: {
-        evolui: path.join(__dirname, '../src'),
-        'evolui/ease': path.join(__dirname, '../src/ease')
+        evolui: path.join(__dirname, '../src')
+        // evolui: path.join(__dirname, '../lib/evolui.js')
       }
     }
   }

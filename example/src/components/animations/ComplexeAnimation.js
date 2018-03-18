@@ -1,6 +1,5 @@
 import { Observable, Subject } from 'rxjs'
-import html from 'evolui'
-import ease from 'evolui/ease'
+import html, { ease } from 'evolui'
 
 const addPosition = e => {
   e.position = e.type.match(/^touch/)
@@ -164,9 +163,7 @@ const GrabbableCircle = ({
 export default () => {
   const { start, drag$, isDragging$ } = createDragHandler()
   return html`
-    <div
-      mount="${() => console.log('complex create')}"
-      renderer>
+    <div mount="${() => console.log('complex create')}">
       ${GrabbableCircle({
         radius: 50,
         r: 57,

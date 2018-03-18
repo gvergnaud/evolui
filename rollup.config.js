@@ -1,8 +1,9 @@
 import babel from 'rollup-plugin-babel'
 import nodeResolve from 'rollup-plugin-node-resolve'
 import commonjs from 'rollup-plugin-commonjs'
+import uglify from 'rollup-plugin-uglify'
 
-const createConfig = (input, output) => ({
+const createConfig = (input, output, additionnalPlugins = []) => ({
   input,
   output: {
     file: output,
@@ -10,22 +11,19 @@ const createConfig = (input, output) => ({
   },
   plugins: [
     nodeResolve({
-      jsnext: true,
-      main: true
+      jsnext: true
     }),
     commonjs({
-      include: 'node_modules/**',
-      namedExports: {
-        'node_modules/virtual-dom/index.js': [ 'h', 'diff', 'patch' ]
-      }
+      include: 'node_modules/**'
     }),
     babel({
       exclude: 'node_modules/**'
-    })
+    }),
+    ...additionnalPlugins
   ]
 })
 
 export default [
   createConfig('src/index.js', 'lib/evolui.js'),
-  createConfig('src/ease.js', 'lib/ease.js')
-];
+  createConfig('src/index.js', 'lib/evolui.min.js', [uglify()])
+]
