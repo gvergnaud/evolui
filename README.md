@@ -1,11 +1,11 @@
 # Evolui
 
-⚠️ this is experimental! ⚠️
-
 A `8kb` template library that magically understands Promises and Observables.
 
 Evolui takes care of refreshing your UI when promises and observables emit new values.
 You can only care about where the data should be displayed.
+
+⚠️ this is experimental! ⚠️
 
 ## Get it
 
