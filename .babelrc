@@ -1,6 +1,22 @@
 {
-    "presets": [
-        ["es2015", { "modules": false }],
-        "stage-2"
-    ]
+  "presets": [["env", { "modules": false }]],
+  "plugins": [
+    "transform-es2017-object-entries",
+    "transform-object-rest-spread",
+    "external-helpers"
+  ],
+  "env": {
+    "test": {
+      "presets": [
+        [
+          "env",
+          {
+            "targets": {
+              "node": "current"
+            }
+          }
+        ]
+      ]
+    }
+  }
 }

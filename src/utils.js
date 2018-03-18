@@ -1,23 +1,57 @@
-import curry from 'lodash/fp/curry'
-
 const Nothing = 'Nothing'
 
+// Functions
+export const compose = (...fns) => x =>
+  fns.reduceRight((value, f) => f(value), x)
+export const pipe = (...fs) => fs.reduce((acc, f) => x => f(acc(x)), x => x)
+
+export const curry = f => (...args) =>
+  args.length >= f.length
+    ? f(...args)
+    : (...args2) => curry(f)(...args, ...args2)
+
+// Array
 export const init = xs => xs.slice(0, xs.length - 1)
 export const last = xs => xs[xs.length - 1]
 export const dropRight = (n, xs) => xs.slice(0, xs.length - n)
-export const compose = (...fns) => x => fns.reduceRight((value, f) => f(value), x)
-export const pipe = (...fs) => fs.reduce((acc, f) => x => f(acc(x)), x => x)
+export const flatMap = curry((f, xs) =>
+  xs.reduce((acc, x) => acc.concat(f(x)), [])
+)
 
+// Object
+export const fromEntries = entries =>
+  entries.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {})
+export const pickBy = curry((predicate, obj) =>
+  fromEntries(
+    Object.entries(obj).filter(([key, value]) => predicate(value, key))
+  )
+)
+export const pick = keys => pickBy((_, key) => keys.includes(key))
+
+// Misc
+export const isEmpty = x =>
+  x !== 0 && (!x || (typeof x === 'string' && !x.trim()))
+
+// Promise
 export const isPromise = p => p && typeof p.then === 'function'
+
+// Observable
 export const isObservable = x => x && typeof x.subscribe === 'function'
 
 export const createOperators = Observable => {
-  const fromPromise = p =>
+  const point = (...xs) =>
     new Observable(observer => {
-      p.then(x => observer.next(x)).catch(e => observer.complete())
+      for (const x of xs) observer.next(x)
+      observer.complete()
+      return { unsubscribe: () => {} }
     })
 
-  const toObservable = x => (isObservable(x) ? x : Observable.of(x))
+  const fromPromise = p =>
+    new Observable(observer => {
+      p.then(x => observer.next(x)).catch(() => observer.complete())
+    })
+
+  const toObservable = x => (isObservable(x) ? x : point(x))
 
   const startWith = curry(
     (initalValue, stream) =>
@@ -37,7 +71,7 @@ export const createOperators = Observable => {
 
       const subs = observables.map((obs, index) =>
         obs.subscribe({
-          error: (e) => {
+          error: e => {
             console.error(e)
             active[index] = false
             if (active.every(x => x === false)) observer.complete()
@@ -132,17 +166,72 @@ export const createOperators = Observable => {
   })
 
   const all = obs =>
-    obs.length ? combineLatest(...obs, (...xs) => xs) : Observable.of([])
+    obs.length ? combineLatest(...obs, (...xs) => xs) : point([])
+
+  const scan = (scanner, seed, stream) => {
+    let acc = seed
+    const scanValue = x => {
+      acc = scanner(acc, x)
+      return acc
+    }
+
+    return new Observable(observer =>
+      stream.subscribe({
+        error: err => observer.error(err),
+        next: x => observer.next(scanValue(x)),
+        complete: () => observer.complete()
+      })
+    )
+  }
+
+  const throttle = throttler => stream =>
+    new Observable(observer => {
+      return stream.subscribe({
+        complete: throttler(() => observer.complete()),
+        error: e => observer.error(e),
+        next: throttler(x => observer.next(x))
+      })
+    })
+
+  const share = stream => {
+    let observers = []
+    let subscription
+
+    const subscribe = () =>
+      stream.subscribe({
+        complete: () => observers.forEach(o => o.complete()),
+        error: e => observers.forEach(o => o.error(e)),
+        next: x => observers.forEach(o => o.next(x))
+      })
+
+    return new Observable(observer => {
+      observers.push(observer)
+      if (observers.length === 1) {
+        subscription = subscribe()
+      }
+
+      return {
+        unsubscribe: () => {
+          observers = observers.filter(o => o !== observer)
+          if (observer.length === 0) subscription.unsubscribe()
+        }
+      }
+    })
+  }
 
   return {
+    point,
     sample,
     map,
     switchMap,
     all,
     combineLatest,
     startWith,
+    scan,
+    throttle,
     toObservable,
     fromPromise,
+    share
   }
 }
 

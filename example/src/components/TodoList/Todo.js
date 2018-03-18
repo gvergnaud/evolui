@@ -1,13 +1,13 @@
 import html from 'evolui'
-import store, {
+import {
   UPDATE_TODO,
   TOGGLE_EDIT_TODO,
   STOP_EDIT_TODO,
   REMOVE_TODO,
   TOGGLE_TODO
-} from './store'
+} from './actions'
 
-const Todo = ({ todo }) => {
+const Todo = ({ todo, store }) => {
   const onToggleComplete = () =>
     store.dispatch({ type: TOGGLE_TODO, id: todo.id })
 
@@ -26,7 +26,10 @@ const Todo = ({ todo }) => {
   const onRemove = () => store.dispatch({ type: REMOVE_TODO, id: todo.id })
 
   return html`
-    <li>
+    <li
+      mount="${() => console.log('todo created!', todo.text)}"
+      update="${() => console.log('todo updated!', todo.text)}"
+      unmount="${() => console.log('todo removed ;(', todo.text)}">
       ${
         todo.isEditing
           ? html`

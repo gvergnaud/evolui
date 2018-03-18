@@ -1,13 +1,17 @@
 import html from 'evolui'
 import InputBar from './InputBar'
 import TodoList from './TodoList'
-import store from './store'
+import configureStore, { ADD_TODO, UPDATE_TEXT } from './configureStore'
 
-const TodoApp = () => html`
-  <div>
-    ${InputBar()}
-    ${store.state.switchMap(({ todos }) => TodoList({ todos }))}
-  </div>
-`
+const TodoApp = () => {
+  const store = configureStore()
+
+  return html`
+    <div>
+      ${InputBar({ store })}
+      ${store.state.switchMap(({ todos }) => TodoList({ todos, store }))}
+    </div>
+  `
+}
 
 export default TodoApp
