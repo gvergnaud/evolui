@@ -1,12 +1,12 @@
 import html from 'evolui'
 import classNames from './index.css'
 
-
-const getImageUrl = ({ thumbnails: { images } }) =>
+const getImageUrl = ({ thumbnails: { images } }) =>
   images.reduce(
-    (bestImage, image) => Math.abs(image.height - 500) < Math.abs(bestImage.height - 500)
-      ? image
-      : bestImage,
+    (bestImage, image) =>
+      Math.abs(image.height - 500) < Math.abs(bestImage.height - 500)
+        ? image
+        : bestImage,
     { height: 10 }
   ).url
 

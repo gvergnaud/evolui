@@ -1,10 +1,7 @@
 import html from 'evolui'
 import InputBar from './InputBar'
 import TodoList from './TodoList'
-import configureStore, {
-  ADD_TODO,
-  UPDATE_TEXT,
-} from './configureStore'
+import configureStore, { ADD_TODO, UPDATE_TEXT } from './configureStore'
 
 const TodoApp = () => {
   const store = configureStore()
