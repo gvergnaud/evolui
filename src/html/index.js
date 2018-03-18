@@ -1,5 +1,5 @@
 import hyperx from 'hyperx'
-import h from './h'
+import h, { VNode } from './h'
 import patch, { createElement } from './patch'
 import Observable from '../Observable'
 import { createReactiveTag } from '../core'
@@ -34,6 +34,8 @@ const createRenderProcess = vdom$ =>
       complete: () => observer.complete(),
       error: e => observer.error(e),
       next: newTree => {
+        if (!(newTree instanceof VNode)) return observer.next(newTree)
+
         tree = newTree
 
         const onMount = newTree.lifecycle.mount
