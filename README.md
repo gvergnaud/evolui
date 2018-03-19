@@ -1,4 +1,4 @@
-# Evolui
+# evolui
 
 A `8kb` template library that magically understands Promises and Observables.
 
