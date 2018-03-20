@@ -60,7 +60,9 @@ function updateAttrs(node, previousAttrs, nextAttrs) {
 }
 
 function updateChildren(node, nextChildren) {
-  for (const [index, childTree] of Object.entries(nextChildren)) {
+  for (const index in nextChildren) {
+    const childTree = nextChildren[index]
+
     const previousChildNode = node.childNodes[index]
 
     if (!previousChildNode) {
@@ -74,11 +76,7 @@ function updateChildren(node, nextChildren) {
     }
   }
 
-  const removedChildrenEntries = Object.entries(node.childNodes).filter(
-    ([index]) => !nextChildren[index]
-  )
-
-  for (const [, childNode] of removedChildrenEntries) {
+  for (const childNode of [].slice.call(node.childNodes, nextChildren.length)) {
     removeElement(childNode)
   }
 }
