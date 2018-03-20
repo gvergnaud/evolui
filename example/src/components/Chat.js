@@ -19,12 +19,11 @@ const Chat = () => {
 
   return html`
     <div>
-      <input onkeydown=${onKeyDown} />
-      <div>
+        <input onkeydown="${onKeyDown}" />
         ${message$
           .scan((acc, x) => [...acc, x], [])
+          .startWith([])
           .map(messages => messages.map(message => html`<p>${message}</p>`))}
-      </div>
     </div>
   `
 }

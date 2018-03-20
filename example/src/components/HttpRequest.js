@@ -1,18 +1,20 @@
 import html from 'evolui'
 import { Observable } from 'rxjs'
 
-const fetchPokemon = id =>
-  fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
-    .then(x => x.json())
-    .then(x => x.forms[0].name)
-
-const Pokemon = () => html`
+const HttpRequest = () => html`
   <div>
-    <p>Hello ${Observable.interval(10000)
-      .map(x => x + 1)
-      .flatMap(x => Observable.fromPromise(fetchPokemon(x)))}</p>
-    <p>my favorite pokemon is ${fetchPokemon(10)}</p>
+    ${[1, 2, 3].map(
+      id => html`
+      <h1>
+        ${Observable.fromPromise(
+          fetch(`https://swapi.co/api/people/${id}`)
+            .then(res => res.json())
+            .then(character => character.name)
+        ).startWith('Loading...')}
+      </h1>
+    `
+    )}
   </div>
 `
 
-export default Pokemon
+export default HttpRequest
