@@ -29,7 +29,7 @@ const raf = share(createRaf(Observable))
 // toAStream :: Variable a -> Observable a
 const toAStream = variable =>
   Array.isArray(variable)
-    ? all(variable.map(toAStream))
+    ? all(variable.map(toAStream).map(startWith('')))
     : isObservable(variable)
       ? switchMap(toAStream)(variable)
       : isPromise(variable)

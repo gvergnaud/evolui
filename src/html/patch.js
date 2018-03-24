@@ -59,19 +59,20 @@ function updateAttrs(node, previousAttrs, nextAttrs) {
   }
 }
 
-function updateChildren(node, nextChildren) {
+function updateChildren(node, nextChildren, isSvg) {
   for (const index in nextChildren) {
     const childTree = nextChildren[index]
 
     const previousChildNode = node.childNodes[index]
 
-    if (!previousChildNode) {
-      node.appendChild(createElement(childTree))
+    if (isEmpty(childTree)) {
+    } else if (!previousChildNode) {
+      node.appendChild(createElement(childTree, isSvg))
     } else {
       if (childTree instanceof VNode && childTree.lifecycle.render) {
         childTree.lifecycle.render(previousChildNode, childTree)
       } else {
-        updateElement(previousChildNode, childTree)
+        updateElement(previousChildNode, childTree, isSvg)
       }
     }
   }
@@ -81,17 +82,19 @@ function updateChildren(node, nextChildren) {
   }
 }
 
-export function createElement(vTree) {
+export function createElement(vTree, isSvg) {
   if (vTree instanceof VText) {
     const node = document.createTextNode(vTree.text)
     node[vTreeKey] = vTree
     return node
   } else {
-    const node = document.createElement(vTree.name)
+    const node = (isSvg = isSvg || vTree.name === 'svg')
+      ? document.createElementNS('http://www.w3.org/2000/svg', vTree.name)
+      : document.createElement(vTree.name)
 
     updateEvents(node, {}, vTree.events)
     updateAttrs(node, {}, vTree.attrs)
-    updateChildren(node, vTree.children)
+    updateChildren(node, vTree.children, isSvg)
 
     if (vTree.lifecycle.mount) vTree.lifecycle.mount(node)
     node[vTreeKey] = vTree
@@ -100,7 +103,7 @@ export function createElement(vTree) {
   }
 }
 
-export function updateElement(node, vTree) {
+export function updateElement(node, vTree, isSvg) {
   const previousTree = node[vTreeKey]
 
   if (vTree instanceof VText) {
@@ -113,7 +116,7 @@ export function updateElement(node, vTree) {
     } else {
       updateEvents(node, previousTree.events, vTree.events)
       updateAttrs(node, previousTree.attrs, vTree.attrs)
-      updateChildren(node, vTree.children)
+      updateChildren(node, vTree.children, isSvg)
 
       if (vTree.lifecycle.update) vTree.lifecycle.update(node)
       node[vTreeKey] = vTree
@@ -131,15 +134,26 @@ function removeElement(node) {
   node.remove()
 }
 
+function createVTree(node) {
+  return new VNode({
+    name: node.nodeName.toLowerCase(),
+    lifecycle: {},
+    events: {},
+    attrs: {},
+    children: Array.prototype.map.call(
+      node.childNodes,
+      node =>
+        node.nodeType === 3 // Node.TEXT_NODE
+          ? new VText({ text: node.nodeValue })
+          : createVTree(node)
+    )
+  })
+}
+
 export default function patch(node, vTree) {
   if (!node[vTreeKey]) {
-    node[vTreeKey] = new VNode({
-      name: node.tagName.toLowerCase(),
-      lifecycle: {},
-      events: {},
-      attrs: {},
-      children: []
-    })
+    node[vTreeKey] = createVTree(node)
   }
+
   return updateElement(node, vTree)
 }
