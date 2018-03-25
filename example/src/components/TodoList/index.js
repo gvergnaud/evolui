@@ -9,7 +9,10 @@ const TodoApp = () => {
   return html`
     <div>
       ${InputBar({ store })}
-      ${store.state.switchMap(({ todos }) => TodoList({ todos, store }))}
+      ${store.state
+        .pluck('todos')
+        .distinctUntilChanged()
+        .switchMap(todos => TodoList({ todos, store }))}
     </div>
   `
 }
