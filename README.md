@@ -5,15 +5,15 @@ A `8kb` template library that magically understands Promises and Observables.
 Evolui takes care of refreshing your UI when promises and observables emit new values.
 You can only care about where the data should be displayed.
 
-⚠️ this is experimental! ⚠️
+⚠️ this is still experimental! ⚠️
 
 ## Get it
 
 ```
-npm install --save evolui
+npm install evolui
 ```
 
-## Promises
+### Promises
 
 ```js
 import html, { render } from 'evolui'
@@ -31,7 +31,7 @@ render(
 
 ![Promise demo](https://github.com/gvergnaud/evolui/blob/media/gifs/evolui-1.gif?raw=true)
 
-## Observables
+### Observables
 
 ```js
 import html, { render } from 'evolui'
@@ -55,7 +55,7 @@ render(
 
 The main goal of evolui is to make dealing with observables as easy as dealing with regular values.
 
-Observables are a great way to represent values that change over time. The hard part though is combining them and managing subscriptions. This is where evolui comes in handy. Evolui understand **any** combination of `Array`s, `Promise`s and `Observable`s, so you never have to worry on the way you should combine them before putting them inside your template.
+Observables are a great way to represent values that change over time. The hard part though is combining them. This is where evolui comes in handy. It understands **any** combination of `Array`s, `Promise`s and `Observable`s, so you never have to worry about the way you should combine them before putting them inside your template.
 
 ```js
 html`
@@ -114,6 +114,52 @@ render(
 ```
 
 ![animation demo](https://raw.githubusercontent.com/gvergnaud/evolui/c445de8161c151c24d84d0ad61af0a6185f0d62d/dot-animation.gif)
+
+## API
+
+#### text :: TaggedString -> Observable String
+
+```js
+import { text } from 'evolui'
+
+const style$ = text`
+  position: absolute;
+  transform: translate(${x$}px, ${y$}px);
+`
+```
+
+#### html :: TaggedString -> Observable VirtualDOM
+
+```js
+import html from 'evolui'
+
+const App = html`
+  <div style="${style$};" />
+`
+```
+
+#### render :: Observable VirtualDOM -> DOMNode -> ()
+
+```js
+import { render } from 'evolui'
+
+render(App, document.body)
+```
+
+#### Lifecycle
+
+* **mount** — after the element as been rendered
+* **update** — after the dom element as been update
+* **unmount** — before the dom element is removed from the dom
+
+```js
+html`
+  <div
+    mount="${el => console.log('mounted!', el)}"
+    update="${el => console.log('updated', el)}"
+    unmount="${el => console.log('will unmount!', el)}" />
+`
+```
 
 ## More examples
 
