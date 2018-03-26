@@ -1,5 +1,5 @@
 import html from 'evolui'
-import classNames from './index.css'
+import './index.css'
 
 const getImageUrl = ({ thumbnails: { images } }) =>
   images.reduce(
@@ -15,16 +15,16 @@ const ModelCard = ({ model, x, y, width, height }) => html`
     key="${model.uid}"
     target="_blank"
     href="${model.viewerUrl}"
-    class="${classNames.card}"
+    class="card"
     style="
       transform: translate(${x}px, ${y}px);
       height: ${height}px;
       width: ${width}px;
     ">
     <div
-      class="${classNames.cardImage}"
+      class="cardImage"
       style="background-image: url(${getImageUrl(model)});"></div>
-    <p class="${classNames.name}">${model.name}</p>
+    <p class="name">${model.name}</p>
   </a>
 `
 

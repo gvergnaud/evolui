@@ -3,7 +3,7 @@ import html, { ease } from 'evolui'
 import { createFetcher, createState, all } from '../../../utils'
 
 import Select from './../../Select'
-import classNames from './index.css'
+import './index.css'
 import { getLikes } from './Api'
 import ModelCard from './ModelCard'
 
@@ -70,7 +70,7 @@ const Grid = ({ userId$ }) => {
   )
 
   return html`
-    <div class="${classNames.grid}">
+    <div class="grid">
       ${Select({
         value$: sort.stream,
         onChange: sort.set,
@@ -81,7 +81,7 @@ const Grid = ({ userId$ }) => {
         Shuffle
       </button>
 
-      <div class="${classNames.container}">
+      <div class="container">
         ${all([sortedModels$, colCount$])
           .map(([models, colCount]) =>
             // [Model] -> [[{ width, height, x, y }, Model]]
