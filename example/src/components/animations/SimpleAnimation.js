@@ -25,7 +25,7 @@ const Circle = ({
       style="
         position: absolute;
         left: 0;
-        right: 0;
+        top: 0;
         width: ${radius * 2}px;
         height: ${radius * 2}px;
         background: ${color};

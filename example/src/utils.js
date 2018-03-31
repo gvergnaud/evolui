@@ -16,13 +16,22 @@ export const createFetcher = getPromise => {
   }
 }
 
-export const createState = (initialValue) => {
+export const createState = initialValue => {
   const stream = new Subject()
   return {
-    set: x => stream.next(x),
-    stream: stream.startWith(initialValue).shareReplay(1)
+    set: x => stream.next({ type: 'value', payload: x }),
+    over: f => stream.next({ type: 'over', payload: f }),
+    stream: stream
+      .scan(
+        (acc, { type, payload }) => (type === 'over' ? payload(acc) : payload),
+        initialValue
+      )
+      .startWith(initialValue)
+      .shareReplay(1)
   }
 }
 
 export const all = obs =>
-  obs.length ? Observable.combineLatest(...obs, (...xs) => xs) : Observable.of([])
+  obs.length
+    ? Observable.combineLatest(...obs, (...xs) => xs)
+    : Observable.of([])
