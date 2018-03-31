@@ -1,4 +1,5 @@
 import Observable from './Observable'
+import { rafThrottle } from '../utils'
 
 const defaultSecondPerFrame = 0.016
 
@@ -42,21 +43,6 @@ function stepper(
   reusedTuple[0] = newValue
   reusedTuple[1] = newVelocity
   return reusedTuple
-}
-
-const rafThrottle = f => {
-  var shouldExecute = true
-  let args = []
-  return (..._args) => {
-    args = _args
-    if (!shouldExecute) return
-    shouldExecute = false
-
-    window.requestAnimationFrame(() => {
-      shouldExecute = true
-      f(...args)
-    })
-  }
 }
 
 const ease = (stiffness, damping) => {

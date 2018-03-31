@@ -10,6 +10,21 @@ export const curry = f => (...args) =>
     ? f(...args)
     : (...args2) => curry(f)(...args, ...args2)
 
+export const rafThrottle = f => {
+  var shouldExecute = true
+  let args = []
+  return (..._args) => {
+    args = _args
+    if (!shouldExecute) return
+    shouldExecute = false
+
+    window.requestAnimationFrame(() => {
+      shouldExecute = true
+      f(...args)
+    })
+  }
+}
+
 // Array
 export const init = xs => xs.slice(0, xs.length - 1)
 export const last = xs => xs[xs.length - 1]
@@ -35,6 +50,11 @@ export const isEmpty = x =>
 // Promise
 export const isPromise = p => p && typeof p.then === 'function'
 
+// Async Generator
+// prettier-ignore
+const AsynGenerator = (async function*() {}).constructor
+export const isAsyncGenerator = x => x instanceof AsynGenerator
+
 // Observable
 export const isObservable = x => x && typeof x.subscribe === 'function'
 
@@ -49,6 +69,18 @@ export const createOperators = Observable => {
   const fromPromise = p =>
     new Observable(observer => {
       p.then(x => observer.next(x)).catch(() => observer.complete())
+    })
+
+  const fromAsyncGenerator = g =>
+    new Observable(async observer => {
+      let isRunning = true
+      const next = rafThrottle(x => observer.next(x))
+      for await (const x of g()) if (isRunning) next(x)
+      return {
+        unsubscribe: () => {
+          isRunning = false
+        }
+      }
     })
 
   const toObservable = x => (isObservable(x) ? x : point(x))
@@ -231,6 +263,7 @@ export const createOperators = Observable => {
     throttle,
     toObservable,
     fromPromise,
+    fromAsyncGenerator,
     share
   }
 }

@@ -3,6 +3,7 @@ import {
   createOperators,
   isObservable,
   isPromise,
+  isAsyncGenerator,
   pipe,
   compose,
   createRaf
@@ -11,6 +12,7 @@ const {
   map,
   startWith,
   fromPromise,
+  fromAsyncGenerator,
   toObservable,
   all,
   switchMap,
@@ -34,7 +36,9 @@ const toAStream = variable =>
       ? switchMap(toAStream)(variable)
       : isPromise(variable)
         ? compose(switchMap(toAStream), fromPromise)(variable)
-        : toObservable(variable)
+        : isAsyncGenerator(variable)
+          ? compose(switchMap(toAStream), fromAsyncGenerator)(variable)
+          : toObservable(variable)
 
 // createReactiveTag
 //  :: ([String] -> ...[Variable a] -> b)
