@@ -1,0 +1,26 @@
+.Spreadsheet {
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+.Spreadsheet td.Spreadsheet-titleCell {
+  width: 30px;
+  padding: 5px 10px;
+  text-align: center;
+}
+
+table.Spreadsheet,
+.Spreadsheet td,
+.Spreadsheet tr {
+  border: 1px solid #ccc;
+}
+
+.Spreadsheet td {
+  margin: 0;
+  padding: 0;
+}
+
+.Spreadsheet input {
+  padding: 5px 10px;
+  border: none;
+}

@@ -4,6 +4,9 @@ const path = require('path')
  * see: http://sagui.js.org/
  */
 module.exports = {
+  style: {
+    cssModules: false
+  },
   pages: ['index'],
   additionalWebpackConfig: {
     resolve: {
