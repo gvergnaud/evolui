@@ -163,11 +163,12 @@ html`
 
 ## More examples
 
+* All examples [Demo](https://7yv1494p9x.codesandbox.io/) — [see code](https://codesandbox.io/s/github/gvergnaud/evolui/tree/master/example)
 * Simple Animation [Demo](https://72wkn61x21.codesandbox.io/) — [see code](https://codesandbox.io/s/72wkn61x21)
 * Complexe Animation [Demo](https://31z431n4m.codesandbox.io/) — [see code](https://codesandbox.io/s/31z431n4m)
 * Animated Pinterest Like Grid [Demo](https://wqyl0xmo47.codesandbox.io/) — [see code](https://codesandbox.io/s/wqyl0xmo47)
 
-**To see more example, visite the [`example`](https://github.com/gvergnaud/evolui/tree/master/example) folder.**
+**To jump to the code, visite the [`example`](https://github.com/gvergnaud/evolui/tree/master/example) folder.**
 
 ## Contributing
 

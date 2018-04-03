@@ -119,14 +119,10 @@ const Code = str => html`
 
 export default () => html`
   <div>
-    <h2>Very basic spreadsheet example</h2>
+    <h2>Very basic spreadsheet</h2>
     <p>Create formulas with the curly brackets ${Code('`{...}`')}.</p>
-    <p>Inside, you can reference other cells by their positions and manipulate them with javascript.</p>
-    <p>
-      for example try typing
-      ${Code('2')} in A1 and
-      ${Code('3')} in B1, then type ${Code('{A1 + B1}')} in another cell.
-    </p>
+    <p>Manipulate other cells with <strong>javascript</strong>.</p>
+    <p>Example: try typing ${Code('{A2 + B2}')} in a cell</p>
     <p>
     ${Spreadsheet()}
   </div>
