@@ -5,7 +5,7 @@
   "main": "lib/evolui.js",
   "scripts": {
     "clean": "rimraf lib",
-    "build": "npm run clean && rollup --config rollup.config.js",
+    "build": "npm run clean && BABEL_ENV=production rollup --config rollup.config.js",
     "prepare": "npm run clean && npm run build",
     "test": "jest"
   },
@@ -22,14 +22,15 @@
     "eslint": "^4.18.2",
     "eslint-plugin-babel": "^4.1.2",
     "eslint-plugin-prettier": "^2.6.0",
-    "hyperx": "^2.3.3",
     "jest": "^22.4.2",
+    "prettier": "^1.12.1",
     "rimraf": "^2.6.2",
     "rollup": "^0.51.7",
     "rollup-plugin-babel": "^3.0.2",
     "rollup-plugin-commonjs": "^8.2.6",
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-plugin-uglify": "^3.0.0",
-    "rxjs": "^5.5.7"
+    "rxjs": "^5.5.7",
+    "vdom-tag": "^0.1.1"
   }
 }

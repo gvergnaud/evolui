@@ -2,8 +2,7 @@
   "presets": [["env", { "modules": false }]],
   "plugins": [
     "transform-es2017-object-entries",
-    "transform-object-rest-spread",
-    "external-helpers"
+    "transform-object-rest-spread"
   ],
   "env": {
     "test": {
@@ -16,6 +15,13 @@
             }
           }
         ]
+      ]
+    },
+    "production": {
+      "plugins": [
+        "transform-es2017-object-entries",
+        "transform-object-rest-spread",
+        "external-helpers"
       ]
     }
   }
