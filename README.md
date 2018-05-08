@@ -5,7 +5,7 @@ A `8kb` reactive user interface library.
 Evolui magically understands Observable and Promises and takes care of refreshing your UI when they emit new values.
 You can only care about where the data should be displayed.
 
-## Get it
+## Install
 
 ```
 npm install evolui

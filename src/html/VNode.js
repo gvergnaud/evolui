@@ -64,6 +64,8 @@ export default class VNode {
   }
 
   mount(node) {
+    this.children.map(child => child.mount())
+
     this.lifecycle.mount(node)
   }
 
@@ -117,7 +119,9 @@ export default class VNode {
       const previousChildNode = node.childNodes[index]
 
       if (!previousChildNode) {
-        node.appendChild(childTree.createElement(isSvg, patch))
+        const childNode = childTree.createElement(isSvg, patch)
+        node.appendChild(childNode)
+        childTree.mount(childNode)
       } else {
         patch(previousChildNode, previousChildTree, childTree, isSvg)
       }
