@@ -11,7 +11,7 @@
     "test": "jest"
   },
   "author": "Gabriel Vergnaud <github.com/gvergnaud>",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-eslint": "^8.2.2",
