@@ -1,11 +1,9 @@
 # evolui
 
-A `8kb` template library that magically understands Promises and Observables.
+A `8kb` reactive user interface library.
 
-Evolui takes care of refreshing your UI when promises and observables emit new values.
+Evolui magically understands Observable and Promises and takes care of refreshing your UI when they emit new values.
 You can only care about where the data should be displayed.
-
-⚠️ this is still experimental! ⚠️
 
 ## Get it
 
@@ -58,17 +56,20 @@ The main goal of evolui is to make dealing with observables as easy as dealing w
 Observables are a great way to represent values that change over time. The hard part though is combining them. This is where evolui comes in handy. It understands **any** combination of `Array`s, `Promise`s and `Observable`s, so you never have to worry about the way you should combine them before putting them inside your template.
 
 ```js
+const getCharacterName = id =>
+  fetch(`https://swapi.co/api/people/${id}`)
+    .then(res => res.json())
+    .then(character => character.name)
+
 html`
   <div>
     ${'' /* this will return an array of observables. */}
     ${'' /* Don't panic! evolui understands that as well */}
     ${[1, 2, 3].map(
       id => html`
-      <h1>${Observable.fromPromise(
-        fetch(`https://swapi.co/api/people/${id}`)
-          .then(res => res.json())
-          .then(character => character.name)
-      ).startWith('Loading...')}</h1>
+      <h1>${Observable.fromPromise(getCharacterName(id)).startWith(
+        'Loading...'
+      )}</h1>
     `
     )}
   </div>
@@ -76,6 +77,47 @@ html`
 ```
 
 ![list demo](https://github.com/gvergnaud/evolui/blob/media/gifs/evolui-3.gif?raw=true)
+
+## Components
+
+Evolui lets you organize your code in components.
+
+Components are defined as a simple function of `Observable Props -> Observable VirtualDOM`:
+
+```js
+import html, { createState, render } from 'evolui'
+
+const Button = props$ =>
+  props$.map(
+    ({ text, onClick }) => html`
+    <button class="Button" onClick=${onClick}>
+        ${text}
+    </button>
+`
+  )
+
+const App = () => {
+  const state = createState({ count: 0 })
+
+  return html`
+     <div>
+       <${Button}
+         text="-"
+         onClick=${() => state.count.set(c => c - 1)}
+       />
+
+       count: ${state.count}
+
+       <${Button}
+         text="+"
+         onClick=${() => state.count.set(c => c + 1)}
+       />
+     </div>
+    `
+}
+
+render(App(), document.body)
+```
 
 ## Animations
 
@@ -117,7 +159,7 @@ render(
 
 ## API
 
-#### text :: TaggedString -> Observable String
+#### text :: TemplateLiteral -> Observable String
 
 ```js
 import { text } from 'evolui'
@@ -128,12 +170,12 @@ const style$ = text`
 `
 ```
 
-#### html :: TaggedString -> Observable VirtualDOM
+#### html :: TemplateLiteral -> Observable VirtualDOM
 
 ```js
 import html from 'evolui'
 
-const App = html`
+const App = () => html`
   <div style="${style$};" />
 `
 ```
@@ -143,10 +185,55 @@ const App = html`
 ```js
 import { render } from 'evolui'
 
-render(App, document.body)
+render(App(), document.body)
 ```
 
-#### Lifecycle
+### ease :: (Number, Number) -> Observable Number -> Observable Number
+
+```js
+import { ease } from 'evolui'
+import { Observable } from 'rxjs'
+
+Observable.interval(1000)
+  .switchMap(ease(120, 20))
+  .forEach(x => console.log(x)) // every values will be interpolated
+```
+
+### createState :: Object -> State
+
+```js
+import html, { createState, render } from 'evolui'
+
+const App = () => {
+  const state = createState({ count: 0 })
+  return html`
+    <button onClick=${() => state.count.set(c => c + 1)}>
+        you clicked ${state.count} times!
+    </button>
+  `
+}
+
+render(App(), document.body)
+```
+
+Each key on your initial state will be transformed into a stream, with a special `set` method on it.
+`set` can take either a value or a mapper function.
+
+```js
+const state = createState({ count: 0 })
+const reset = () => state.count.set(0)
+const add1 = () => state.count.set(c => c + 1)
+```
+
+### all :: [Observable a] -> Observable [a]
+
+```js
+import { all } from 'evolui'
+
+const z$ = all([x$, y$]).map(([x, y]) => x + y)
+```
+
+### Lifecycle
 
 * **mount** — after the element as been rendered
 * **update** — after the dom element as been update

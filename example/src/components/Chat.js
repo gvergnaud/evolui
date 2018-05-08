@@ -8,6 +8,7 @@ const Chat = () => {
   const message$ = new Observable(observer => {
     socket.on('message', message => observer.next(message))
   })
+
   const sendMessage = message => socket.emit('message', message)
 
   const onKeyDown = ({ which, target }) => {

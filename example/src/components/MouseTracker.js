@@ -2,10 +2,7 @@ import html from 'evolui'
 import { Observable } from 'rxjs'
 
 const mouse = Observable.fromEvent(window, 'mousemove')
-  .map(e => ({
-    x: e.clientX,
-    y: e.clientY
-  }))
+  .map(e => ({ x: e.clientX, y: e.clientY }))
   .startWith({ x: 0, y: 0 })
 
 const MouseTracker = () => html`

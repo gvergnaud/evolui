@@ -1,17 +1,18 @@
 import html from 'evolui'
 
-const Select = ({ options, onChange, value$ }) => html`
-  <select onchange="${e => onChange(e.target.value)}">
-    ${options.map(({ title, value }) =>
-      value$.map(
-        v => html`
-        <option
-          ${value === v ? 'selected' : ''}
-          value="${value}">${title}</option>
-      `
-      )
-    )}
-  </select>
-`
+const Select = props$ =>
+  props$.map(
+    ({ options, onChange, value }) => html`
+      <select onchange="${e => onChange(e.target.value)}">
+        ${options.map(
+          option => html`
+            <option
+              ${option.value === value ? 'selected' : ''}
+              value="${option.value}">${option.title}</option>
+          `
+        )}
+      </select>
+    `
+  )
 
 export default Select
