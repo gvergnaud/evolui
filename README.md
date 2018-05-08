@@ -90,30 +90,30 @@ import html, { createState, render } from 'evolui'
 const Button = props$ =>
   props$.map(
     ({ text, onClick }) => html`
-    <button class="Button" onClick=${onClick}>
-        ${text}
-    </button>
-`
+      <button class="Button" onClick=${onClick}>
+          ${text}
+      </button>
+    `
   )
 
 const App = () => {
   const state = createState({ count: 0 })
 
   return html`
-     <div>
-       <${Button}
-         text="-"
-         onClick=${() => state.count.set(c => c - 1)}
-       />
+    <div>
+      <${Button}
+        text="-"
+        onClick=${() => state.count.set(c => c - 1)}
+      />
 
-       count: ${state.count}
+      count: ${state.count}
 
-       <${Button}
-         text="+"
-         onClick=${() => state.count.set(c => c + 1)}
-       />
-     </div>
-    `
+      <${Button}
+        text="+"
+        onClick=${() => state.count.set(c => c + 1)}
+      />
+    </div>
+  `
 }
 
 render(App(), document.body)
@@ -142,14 +142,13 @@ const position$ = new Observable(observer => {
 
 render(
   html`
-    <div>
-      <div
-        class="circle"
-        style="transform: translate(
-          ${position$.map(m => m.x).switchMap(ease(120, 18))}px,
-          ${position$.map(m => m.y).switchMap(ease(120, 18))}px
-        );" />
-    </div>
+    <div
+      class="circle"
+      style="transform: translate(
+        ${position$.map(m => m.x).switchMap(ease(120, 18))}px,
+        ${position$.map(m => m.y).switchMap(ease(120, 18))}px
+      );"
+    />
   `,
   document.body
 )
@@ -201,28 +200,32 @@ Observable.interval(1000)
 
 ### createState :: Object -> State
 
-```js
-import html, { createState, render } from 'evolui'
-
-const App = () => {
-  const state = createState({ count: 0 })
-  return html`
-    <button onClick=${() => state.count.set(c => c + 1)}>
-        you clicked ${state.count} times!
-    </button>
-  `
-}
-
-render(App(), document.body)
-```
+Create an object of mutable reactive values.
 
 Each key on your initial state will be transformed into a stream, with a special `set` method on it.
 `set` can take either a value or a mapper function.
 
 ```js
+import html, { createState, render } from 'evolui'
+
 const state = createState({ count: 0 })
+
+console.log(state.count)
+// => Observable.of(0)
+
 const reset = () => state.count.set(0)
 const add1 = () => state.count.set(c => c + 1)
+
+render(
+  html`
+    <div>
+      count: ${state.count}
+      <button onClick=${reset}>reset</button>
+      <button onClick=${add1}>+</button>
+    </div>
+  `,
+  document.body
+)
 ```
 
 ### all :: [Observable a] -> Observable [a]
