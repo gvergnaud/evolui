@@ -10,22 +10,29 @@ const getImageUrl = ({ thumbnails: { images } }) =>
     { height: 10 }
   ).url
 
-const ModelCard = ({ model, x, y, width, height }) => html`
-  <a
-    key="${model.uid}"
-    target="_blank"
-    href="${model.viewerUrl}"
-    class="card"
-    style="
+const ModelCard = props$ => {
+  const style$ = props$.map(
+    ({ x, y, width, height }) => `
       transform: translate(${x}px, ${y}px);
       height: ${height}px;
       width: ${width}px;
-    ">
-    <div
-      class="cardImage"
-      style="background-image: url(${getImageUrl(model)});"></div>
-    <p class="name">${model.name}</p>
-  </a>
-`
+    `
+  )
+
+  return html`
+    <a
+      target="_blank"
+      href="${props$.map(p => p.model.viewerUrl)}"
+      class="card"
+      style="${style$}">
+      <div
+        class="cardImage"
+        style="background-image: url(${props$.map(p =>
+          getImageUrl(p.model)
+        )});"></div>
+      <p class="name">${props$.map(p => p.model.name)}</p>
+    </a>
+  `
+}
 
 export default ModelCard

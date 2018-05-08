@@ -1,7 +1,10 @@
-import h, { VNode, VText } from '../../src/html/h'
-import hyperx from 'hyperx'
+import h from '../../src/html/h'
+import VNode from '../../src/html/VNode'
+import VText from '../../src/html/VText'
+import createTag from 'vdom-tag'
+import { createDefaultLifecycle } from '../../src/utils/misc'
 
-const html = hyperx(h)
+const html = createTag(h)
 
 describe('h', () => {
   it('should work when only giving a node name', () => {
@@ -9,7 +12,7 @@ describe('h', () => {
       new VNode({
         name: 'div',
         attrs: {},
-        lifecycle: {},
+        lifecycle: createDefaultLifecycle(),
         events: {},
         children: []
       })
@@ -26,25 +29,25 @@ describe('h', () => {
       `
     ).toEqual(
       new VNode({
-        attrs: { className: 'User' },
+        attrs: { class: 'User' },
         children: [
           new VNode({
-            attrs: { className: 'User-image', src: '/path/to/img.jpg' },
+            attrs: { class: 'User-image', src: '/path/to/img.jpg' },
             children: [],
             events: {},
-            lifecycle: {},
+            lifecycle: createDefaultLifecycle(),
             name: 'img'
           }),
           new VNode({
-            attrs: { className: 'User-name' },
+            attrs: { class: 'User-name' },
             children: [new VText({ text: 'Toto' })],
             events: {},
-            lifecycle: {},
+            lifecycle: createDefaultLifecycle(),
             name: 'h1'
           })
         ],
         events: {},
-        lifecycle: {},
+        lifecycle: createDefaultLifecycle(),
         name: 'div'
       })
     )
@@ -60,13 +63,13 @@ describe('h', () => {
       `
     ).toEqual(
       new VNode({
-        attrs: { className: 'User' },
+        attrs: { class: 'User' },
         children: [],
         events: {
           click: onClick,
           keydown: onKeyDown
         },
-        lifecycle: {},
+        lifecycle: createDefaultLifecycle(),
         name: 'div'
       })
     )
@@ -88,7 +91,7 @@ describe('h', () => {
       `
     ).toEqual(
       new VNode({
-        attrs: { className: 'User' },
+        attrs: { class: 'User' },
         children: [],
         events: {},
         lifecycle: {

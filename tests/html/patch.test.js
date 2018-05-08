@@ -1,8 +1,9 @@
 import h from '../../src/html/h'
-import patch, { createElement } from '../../src/html/patch'
-import hyperx from 'hyperx'
+import patch from '../../src/html/patch'
+import createTag from 'vdom-tag'
 
-const html = hyperx(h)
+const html = createTag(h)
+const createElement = vTree => vTree.createElement(false, patch)
 
 const getHtml = str => {
   const el = document.createElement('div')
@@ -39,12 +40,12 @@ describe('h', () => {
       `)
     )
 
-    patch(
-      el,
-      html`
-        <div class="something" />
-      `
-    )
+    let vTree
+    let newVTree = html`
+      <div class="something" />
+    `
+
+    patch(el, vTree, newVTree)
 
     expect(el).toEqual(
       getHtml(`
@@ -52,12 +53,12 @@ describe('h', () => {
       `)
     )
 
-    patch(
-      el,
-      html`
-        <div class="something" cool="yes" />
-      `
-    )
+    vTree = newVTree
+    newVTree = html`
+      <div class="something" cool="yes" />
+    `
+
+    patch(el, vTree, newVTree)
 
     expect(el).toEqual(
       getHtml(`
@@ -65,12 +66,12 @@ describe('h', () => {
       `)
     )
 
-    patch(
-      el,
-      html`
-        <div hello="good" />
-      `
-    )
+    vTree = newVTree
+    newVTree = html`
+      <div hello="good" />
+    `
+
+    patch(el, vTree, newVTree)
 
     expect(el).toEqual(
       getHtml(`
@@ -85,6 +86,7 @@ describe('h', () => {
 
     patch(
       el,
+      undefined,
       html`
         <div>
           <div
@@ -110,6 +112,7 @@ describe('h', () => {
 
     patch(
       el,
+      undefined,
       html`
         <div>
           <div
@@ -125,6 +128,7 @@ describe('h', () => {
 
     patch(
       el,
+      undefined,
       html`
         <div>
           <div
@@ -149,33 +153,33 @@ describe('h', () => {
     let unmountWasCalled = false
     const el = document.createElement('div')
 
-    patch(
-      el,
-      html`
-        <div>
-          <div
-            class="User"
-            unmount="${el => {
-              expect(el).toEqual(
-                getHtml(`
-                  <div class="User"></div>
-                `)
-              )
-              unmountWasCalled = true
-            }}" />
-        </div>
-      `
-    )
+    let vTree
+    let newVTree = html`
+      <div>
+        <div
+          class="User"
+          unmount="${el => {
+            expect(el).toEqual(
+              getHtml(`
+                <div class="User"></div>
+              `)
+            )
+            unmountWasCalled = true
+          }}" />
+      </div>
+    `
+
+    patch(el, vTree, newVTree)
 
     expect(unmountWasCalled).toBe(false)
 
-    patch(
-      el,
-      html`
-        <div>
-        </div>
-      `
-    )
+    vTree = newVTree
+    newVTree = html`
+      <div>
+      </div>
+    `
+
+    patch(el, vTree, newVTree)
 
     expect(unmountWasCalled).toBe(true)
   })

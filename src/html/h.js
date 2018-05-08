@@ -1,20 +1,9 @@
-import { flatMap, isEmpty } from '../utils'
+import VNode from './VNode'
+import VText from './VText'
+import Component from './Component'
 
-export class VNode {
-  constructor({ name, attrs, lifecycle, events, children }) {
-    this.name = name
-    this.attrs = attrs
-    this.lifecycle = lifecycle
-    this.events = events
-    this.children = children
-  }
-}
-
-export class VText {
-  constructor({ text }) {
-    this.text = text
-  }
-}
+import { flatMap } from '../utils/arrays'
+import { isEmpty, createDefaultLifecycle } from '../utils/misc'
 
 const isLifecycle = key => ['mount', 'update', 'unmount'].includes(key)
 const isEvent = key => !!key.match(/^on/)
@@ -30,16 +19,27 @@ const styleToObject = styleStr =>
 const formatChildren = flatMap(
   c =>
     Array.isArray(c)
-      ? c
-      : c instanceof VNode || c instanceof VText
+      ? formatChildren(c)
+      : [VNode, VText, Component].some(C => c instanceof C)
         ? [c]
-        : isEmpty(c) ? [] : [new VText({ text: `${c}` })]
+        : isEmpty(c)
+          ? []
+          : [new VText({ text: `${c}` })]
 )
 
 export default function h(name, attributes = {}, children = []) {
-  const { lifecycle, events, attrs } = Object.entries(attributes).reduce(
+  if (typeof name === 'function') {
+    return new Component({
+      name,
+      untouchedAttributes: { ...attributes, children }
+    })
+  }
+
+  const { key, lifecycle, events, attrs } = Object.entries(attributes).reduce(
     (acc, [key, value]) => {
-      if (isLifecycle(key) && typeof value === 'function') {
+      if (key === 'key') {
+        acc.key = value
+      } else if (isLifecycle(key) && typeof value === 'function') {
         acc.lifecycle[key] = value
       } else if (isEvent(key) && typeof value === 'function') {
         acc.events[toEventName(key)] = value
@@ -51,7 +51,7 @@ export default function h(name, attributes = {}, children = []) {
       }
       return acc
     },
-    { lifecycle: {}, events: {}, attrs: {} }
+    { lifecycle: createDefaultLifecycle(), events: {}, attrs: {} }
   )
 
   return new VNode({
@@ -59,6 +59,7 @@ export default function h(name, attributes = {}, children = []) {
     attrs,
     lifecycle,
     events,
-    children: formatChildren(children)
+    children: formatChildren(children),
+    key
   })
 }

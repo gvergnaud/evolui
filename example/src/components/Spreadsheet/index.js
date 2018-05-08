@@ -1,7 +1,6 @@
-import html, { text } from 'evolui'
+import html, { text, createState } from 'evolui'
 import { set } from 'immutable-deep-update'
 import { Observable } from 'rxjs'
-import { createState } from '../../utils'
 import initialCellsState from './initialCellsState'
 
 import './index.css'
@@ -62,8 +61,7 @@ const Spreadsheet = () => {
     })
   }
 
-  const getCellState = key =>
-    state.stream.map(s => s[key]).distinctUntilChanged()
+  const getCellState = key => Observable.from(state[key]).distinctUntilChanged()
 
   const getCellValue = key =>
     getCellState(key).switchMap(({ value, focus }) => {
@@ -74,9 +72,9 @@ const Spreadsheet = () => {
 
   const getCellFocus = key => getCellState(key).map(({ focus }) => focus)
 
-  const setCellFocus = (key, focus) => state.over(set(`${key}.focus`, focus))
+  const setCellFocus = (key, focus) => state[key].set(set('focus', focus))
 
-  const setCellValue = (key, value) => state.over(set(`${key}.value`, value))
+  const setCellValue = (key, value) => state[key].set(set('value', value))
 
   return html`
     <table class="Spreadsheet">

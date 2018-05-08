@@ -1,5 +1,4 @@
-import html, { render } from 'evolui'
-import { createState } from './utils'
+import html, { render, createState } from 'evolui'
 import Select from './components/Select'
 
 import Ticker from './components/Ticker'
@@ -42,18 +41,24 @@ const components = {
 }
 
 const App = () => {
-  const selectedExample = createState('ComplexeAnimation')
+  const state = createState({ selectedExample: 'ComplexeAnimation' })
+
+  const component$ = state.selectedExample.map(name => components[name])
+
   return html`
     <div>
       <h3>A few examples of what you can do with evolui 🚀</h3>
 
-      <p>Choose an example 👉 ${Select({
-        value$: selectedExample.stream,
-        onChange: selectedExample.set,
-        options: examples
-      })}</p>
+      <p>
+        Choose an example 👉
+        <${Select}
+          value=${state.selectedExample}
+          onChange=${state.selectedExample.set}
+          options=${examples}
+        />
+      </p>
 
-      ${selectedExample.stream.map(name => components[name]())}
+      ${component$.map(Component => html`<${Component} />`)}
     </div>
   `
 }

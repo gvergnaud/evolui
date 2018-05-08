@@ -1,24 +1,22 @@
-import Observable from './Observable'
 import {
-  createOperators,
   isObservable,
   isPromise,
-  pipe,
-  compose,
-  createRaf
-} from './utils'
-const {
-  map,
+  raf,
   startWith,
   fromPromise,
   toObservable,
   all,
+  map,
+  filter,
   switchMap,
   sample,
   share
-} = createOperators(Observable)
+} from './utils/observables'
 
-const raf = share(createRaf(Observable))
+import { isEmpty } from './utils/misc'
+import { compose } from './utils/functions'
+
+const hasContent = xs => !xs.length || !xs.every(isEmpty)
 
 // data Variable a
 //   = a
@@ -26,15 +24,19 @@ const raf = share(createRaf(Observable))
 //   | Observable (Variable a)
 //   | [Variable a]
 
-// toAStream :: Variable a -> Observable a
-const toAStream = variable =>
+// flatten :: Variable a -> Observable a
+export const flatten = variable =>
   Array.isArray(variable)
-    ? all(variable.map(toAStream).map(startWith('')))
+    ? all(variable.map(compose(startWith(''), flatten))).pipe(
+        filter(hasContent)
+      )
     : isObservable(variable)
-      ? switchMap(toAStream)(variable)
+      ? switchMap(flatten)(variable)
       : isPromise(variable)
-        ? compose(switchMap(toAStream), fromPromise)(variable)
+        ? switchMap(flatten, fromPromise(variable))
         : toObservable(variable)
+
+export const sharedRaf = share(raf)
 
 // createReactiveTag
 //  :: ([String] -> ...[Variable a] -> b)
@@ -42,9 +44,8 @@ const toAStream = variable =>
 //  -> ...[Variable a]
 //  -> Observable b
 export const createReactiveTag = tagFunction => (strings, ...variables) =>
-  pipe(
-    toAStream,
+  flatten(variables).pipe(
     startWith([]),
-    sample(raf),
+    sample(sharedRaf),
     map(variables => tagFunction(strings, ...variables))
-  )(variables)
+  )
