@@ -196,7 +196,7 @@ import { render } from 'evolui'
 render(App(), document.body)
 ```
 
-### ease :: (Number, Number) -> Observable Number -> Observable Number
+#### ease :: (Number, Number) -> Observable Number -> Observable Number
 
 ```js
 import { ease } from 'evolui'
@@ -207,7 +207,7 @@ Observable.interval(1000)
   .forEach(x => console.log(x)) // every values will be interpolated
 ```
 
-### createState :: Object -> State
+#### createState :: Object -> State
 
 Create an object of mutable reactive values.
 
@@ -237,7 +237,7 @@ render(
 )
 ```
 
-### all :: [Observable a] -> Observable [a]
+#### all :: [Observable a] -> Observable [a]
 
 ```js
 import { all } from 'evolui'
