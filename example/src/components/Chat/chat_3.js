@@ -2,18 +2,6 @@ import io from 'socket.io-client'
 import { Observable } from 'rxjs'
 import html from 'evolui'
 
-const createActions = actions =>
-  mapValues(mapper => {
-    const sub = new Subject()
-    const action = x => sub.next(x)
-    action.stream = mapper(sub)
-    return action
-  })
-
-const createState = (initialState, actions, mappers) => {
-  return
-}
-
 const _socket = io('https://chat-server-dkkxygrves.now.sh')
 const socket = {
   on: e =>
@@ -23,56 +11,78 @@ const socket = {
   emit: (e, data) => _socket.emit(e, data)
 }
 
+const merge = (...obs) =>
+  new Observable(observer => {
+    const subs = obs.map(stream =>
+      stream.subscribe({
+        next: x => observer.next(x),
+        complete: x => {},
+        error: e => observer.error(e)
+      })
+    )
+    return { unsubscribe: () => subs.forEach(sub => sub.unsubscribe()) }
+  })
+
+const createState = (initialState, handlers) => {
+  const sources = mapValues(handler => {
+    const sub = new Subject()
+    return { intent: x => sub.next(x), stream: handler(sub) }
+  }, handlers)
+
+  return {
+    intents: mapValues(s => s.intent, sources),
+    state$: merge(...mapValues(s => s.stream, sources))
+      .scan((state, f) => ({ ...state, ...f(state) }), initialState)
+      .startWith(initialState)
+  }
+}
+
 const Chat = props$ => {
   const username$ = props$.map(p => p.username)
-
-  const changeText = action(e => state => ({ text: e.target.value }))
-  const sendMessage = action(e => state => ({ text: e.target.value }))
 
   const initialState = {
     text: '',
     messages: []
   }
 
-  const state = createState(initialState, [changeText, sendMessage])
-
-  // actions sont des function a -> () avec une clé { stream :: Observable a }
-  const actions = createActions({
-    changeText: stream => stream.map(e => e.target.value),
+  const { state$, intents } = createState(initialState, {
+    changeText: stream => stream.map(e => () => ({ text: e.target.value })),
     sendMessage: stream =>
-      all([username$, stream.filter(e => e.which === 13)]).tap(
-        ([username, message]) => socket.emit('message', { username, message })
-      ),
-    addMessage: () => socket.on('message')
+      stream
+        .filter(e => e.which === 13)
+        .combineLatest(username$, (message, username) => ({
+          message,
+          username
+        }))
+        .tap(data => socket.emit('message', data))
+        .map(() => () => ({})),
+    addMessage: () =>
+      socket.on('message').map(message => ({ messages }) => ({
+        messages: messages.concat(message)
+      }))
   })
 
-  const state$ = createState(initialState, actions, {
-    changeText: text => state => ({ text }),
-    sendMessage: () => () => ({ text: '' }),
-    addMessage: message => ({ messages }) => ({
-      messages: messages.concat(message)
-    })
-  })
+  return html`
+    <div>
+      <h1>Hello, ${username$}</h1>
+      <input
+        onInput=${intents.changeText}
+        onKeyDown=${intents.sendMessage} />
 
-  return state$.map(
-    state => html`
-      <div>
-          <h1>Hello, ${username$}</h1>
-          <input
-            onInput=${changeText}
-            onKeyDown=${actions.sendMessage} />
-
-          <ul>
-            ${state.messages.map(
-              ({ username, message }) => html`
+      <ul>
+        ${state$.map(state =>
+          state.messages.map(
+            ({ username, message }) =>
+              html`
                 <li>
                   ${username}: ${message}
                 </li>
               `
-            )}
-          </ul>
-      </div>
-    `
-  )
+          )
+        )}
+      </ul>
+    </div>
+  `
 }
+
 export default Chat
