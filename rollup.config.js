@@ -7,7 +7,7 @@ const createConfig = (input, output, additionnalPlugins = []) => ({
   input,
   output: {
     file: output,
-    format: 'cjs'
+    format: 'es'
   },
   plugins: [
     nodeResolve({
@@ -20,7 +20,8 @@ const createConfig = (input, output, additionnalPlugins = []) => ({
       exclude: 'node_modules/**'
     }),
     ...additionnalPlugins
-  ]
+  ],
+  external: ['vdom-tag', 'rxjs', 'rxjs/operators']
 })
 
 export default [

@@ -3,7 +3,7 @@ import { map } from 'rxjs/operators'
 
 import Select from './components/Select'
 import PinterestLikeGrid from './components/animations/PinterestLikeGrid'
-import ComplexeAnimation from './components/animations/ComplexeAnimation'
+import ComplexAnimation from './components/animations/ComplexAnimation'
 import SimpleAnimation from './components/animations/SimpleAnimation'
 import SvgAnimation from './components/animations/SvgAnimation'
 import Spreadsheet from './components/Spreadsheet'
@@ -30,7 +30,7 @@ const examples = [
 
 const components = {
   PinterestLikeGrid,
-  ComplexeAnimation,
+  ComplexAnimation,
   SimpleAnimation,
   SvgAnimation,
   Spreadsheet,

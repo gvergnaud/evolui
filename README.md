@@ -8,7 +8,7 @@ You can only care about where the data should be displayed.
 ## Install
 
 ```
-npm install evolui
+npm install evolui rxjs
 ```
 
 ## Examples

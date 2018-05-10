@@ -2,20 +2,19 @@ import {
   isObservable,
   isPromise,
   raf,
-  startWith,
-  fromPromise,
   toObservable,
   all,
-  map,
-  filter,
   switchMap,
   sample,
   share,
-  blockComplete
+  blockComplete,
+  filter,
+  startWith,
+  map,
+  from
 } from './utils/observables'
-
-import { isEmpty } from './utils/misc'
 import { compose } from './utils/functions'
+import { isEmpty } from './utils/misc'
 
 const hasContent = xs => !xs.length || !xs.every(isEmpty)
 
@@ -33,9 +32,9 @@ export const flatten = variable =>
         filter(hasContent)
       )
     : isObservable(variable)
-      ? switchMap(flatten)(variable)
+      ? switchMap(flatten, variable)
       : isPromise(variable)
-        ? switchMap(flatten, fromPromise(variable))
+        ? switchMap(flatten, from(variable))
         : toObservable(variable)
 
 export const sharedRaf = share(raf)
