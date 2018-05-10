@@ -1,22 +1,22 @@
 import html from 'evolui'
-import { ADD_TODO, UPDATE_TEXT } from './actions'
+import { map } from 'rxjs/operators'
 
 const InputBar = props$ =>
-  props$.map(({ store }) => {
-    const onKeyDown = e => {
-      if (e.which === 13)
-        store.dispatch({ type: ADD_TODO, text: e.target.value })
-    }
+  props$.pipe(
+    map(({ value, onChange, onSubmit }) => {
+      const onKeyDown = e => {
+        if (e.which === 13) onSubmit(value)
+      }
 
-    const onInput = e =>
-      store.dispatch({ type: UPDATE_TEXT, text: e.target.value })
+      const onInput = e => onChange(e.target.value)
 
-    return html`
-      <input
-        value="${store.state.map(({ text }) => text)}"
-        oninput=${onInput}
-        onkeydown=${onKeyDown} />
-    `
-  })
+      return html`
+        <input
+          value=${value}
+          onInput=${onInput}
+          onKeyDown=${onKeyDown} />
+      `
+    })
+  )
 
 export default InputBar

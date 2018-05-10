@@ -1,16 +1,17 @@
 import html, { render, createState } from 'evolui'
-import Select from './components/Select'
+import { map } from 'rxjs/operators'
 
+import Select from './components/Select'
+import PinterestLikeGrid from './components/animations/PinterestLikeGrid'
+import ComplexeAnimation from './components/animations/ComplexeAnimation'
+import SimpleAnimation from './components/animations/SimpleAnimation'
+import SvgAnimation from './components/animations/SvgAnimation'
+import Spreadsheet from './components/Spreadsheet'
 import Ticker from './components/Ticker'
 import TodoList from './components/TodoList'
+import Chat from './components/Chat'
 import MouseTracker from './components/MouseTracker'
 import HttpRequest from './components/HttpRequest'
-import Chat from './components/Chat'
-import Spreadsheet from './components/Spreadsheet'
-import SimpleAnimation from './components/animations/SimpleAnimation'
-import ComplexAnimation from './components/animations/ComplexAnimation'
-import SvgAnimation from './components/animations/SvgAnimation'
-import PinterestLikeGrid from './components/animations/PinterestLikeGrid'
 
 import './index.css'
 
@@ -28,22 +29,20 @@ const examples = [
 ]
 
 const components = {
-  Spreadsheet,
-  TodoList,
-  SimpleAnimation,
-  ComplexAnimation,
-  SvgAnimation,
   PinterestLikeGrid,
+  ComplexeAnimation,
+  SimpleAnimation,
+  SvgAnimation,
+  Spreadsheet,
+  Ticker,
+  TodoList,
   Chat,
   MouseTracker,
-  HttpRequest,
-  Ticker
+  HttpRequest
 }
 
 const App = () => {
   const state = createState({ selectedExample: 'ComplexAnimation' })
-
-  const component$ = state.selectedExample.map(name => components[name])
 
   return html`
     <div>
@@ -58,7 +57,10 @@ const App = () => {
         />
       </p>
 
-      ${component$.map(Component => html`<${Component} />`)}
+      ${state.selectedExample.pipe(
+        map(name => components[name]),
+        map(Component => html`<${Component} />`)
+      )}
     </div>
   `
 }

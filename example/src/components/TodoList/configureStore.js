@@ -1,4 +1,4 @@
-import createStore from '../../createStore'
+import createStore from './createStore'
 
 import {
   UPDATE_TEXT,

@@ -1,6 +1,7 @@
+import html from 'evolui'
 import io from 'socket.io-client'
 import { Observable } from 'rxjs'
-import html from 'evolui'
+import { scan, startWith, map } from 'rxjs/operators'
 
 const Chat = () => {
   const socket = io('https://chat-server-dkkxygrves.now.sh')
@@ -21,10 +22,11 @@ const Chat = () => {
   return html`
     <div>
         <input onkeydown="${onKeyDown}" />
-        ${message$
-          .scan((acc, x) => [...acc, x], [])
-          .startWith([])
-          .map(messages => messages.map(message => html`<p>${message}</p>`))}
+        ${message$.pipe(
+          scan((acc, x) => [...acc, x], []),
+          startWith([]),
+          map(messages => messages.map(message => html`<p>${message}</p>`))
+        )}
     </div>
   `
 }

@@ -42,14 +42,16 @@ render(
 
 ```js
 import html, { render } from 'evolui'
-import { Observable } from 'rxjs'
+import { interval } from 'rxjs'
+import { take, map } from 'rxjs/operators'
 
 render(
   html`
     <p>
-      Hello, ${Observable.interval(1000)
-        .take(4)
-        .map(index => ['.', '..', '...', 'World!'][index])}
+      Hello, ${interval(1000).pipe(
+        take(4),
+        map(index => ['.', '..', '...', 'World!'][index])
+      )}
     </p>
   `,
   document.body
@@ -65,6 +67,10 @@ The main goal of evolui is to make dealing with observables as easy as dealing w
 Observables are a great way to represent values that change over time. The hard part though is combining them. This is where evolui comes in handy. It understands **any** combination of `Array`s, `Promise`s and `Observable`s, so you never have to worry about the way you should combine them before putting them inside your template.
 
 ```js
+import html from 'evolui'
+import { from } from 'rxjs'
+import { startWith } from 'rxjs/operators'
+
 const getCharacterName = id =>
   fetch(`https://swapi.co/api/people/${id}`)
     .then(res => res.json())
@@ -76,10 +82,10 @@ html`
     ${'' /* Don't panic! evolui understands that as well */}
     ${[1, 2, 3].map(
       id => html`
-      <h1>${Observable.fromPromise(getCharacterName(id)).startWith(
-        'Loading...'
-      )}</h1>
-    `
+        <h1>
+          ${from(getCharacterName(id)).pipe(startWith('Loading...'))}
+        </h1>
+      `
     )}
   </div>
 `
@@ -95,14 +101,17 @@ Components are defined as a simple function of `Observable Props -> Observable V
 
 ```js
 import html, { createState, render } from 'evolui'
+import { map } from 'rxjs/operators'
 
 const Button = props$ =>
-  props$.map(
-    ({ text, onClick }) => html`
-      <button class="Button" onClick=${onClick}>
-          ${text}
-      </button>
-    `
+  props$.pipe(
+    map(
+      ({ text, onClick }) => html`
+        <button class="Button" onClick=${onClick}>
+            ${text}
+        </button>
+      `
+    )
   )
 
 const App = () => {
@@ -125,7 +134,7 @@ const App = () => {
   `
 }
 
-render(App(), document.body)
+render(html`<${App} />`, document.body)
 ```
 
 ## Animations
@@ -136,26 +145,25 @@ Evolui exports a **spring** animation helper called ease.
 ease: (stiffness: number, damping: number) => number => Observable<number>
 ```
 
-You just have to add `.switchMap(ease(<stiffness>, <damping>))` to any of your observable to make it animated.
+You just have to pipe any of your observables to `switchMap(ease(<stiffness>, <damping>))` to make it animated.
 
 ```js
 import html, { render, ease } from 'evolui'
-import { Observable } from 'rxjs'
+import { fromEvent } from 'rxjs'
+import { switchMap, map, startWith } from 'rxjs/operators'
 
-const position$ = new Observable(observer => {
-  observer.next({ x: 0, y: 0 })
-  window.addEventListener('click', e => {
-    observer.next({ x: e.clientX, y: e.clientY })
-  })
-})
+const position$ = fromEvent(window, 'click').pipe(
+  map(() => ({ x: e.clientX, y: e.clientY })),
+  startWith({ x: 0, y: 0 })
+)
 
 render(
   html`
     <div
       class="circle"
       style="transform: translate(
-        ${position$.map(m => m.x).switchMap(ease(120, 18))}px,
-        ${position$.map(m => m.y).switchMap(ease(120, 18))}px
+        ${position$.pipe(map(p => p.x), switchMap(ease(120, 18)))}px,
+        ${position$.pipe(map(p => p.y), switchMap(ease(120, 18)))}px
       );"
     />
   `,
@@ -193,18 +201,20 @@ const App = () => html`
 ```js
 import { render } from 'evolui'
 
-render(App(), document.body)
+render(html`<${App} />`, document.body)
 ```
 
 #### ease :: (Number, Number) -> Observable Number -> Observable Number
 
 ```js
 import { ease } from 'evolui'
-import { Observable } from 'rxjs'
+import { interval } from 'rxjs'
+import { switchMap } from 'rxjs/operators'
 
-Observable.interval(1000)
-  .switchMap(ease(120, 20))
-  .forEach(x => console.log(x)) // every values will be interpolated
+interval(1000).pipe(
+  switchMap(ease(120, 20)),
+  subscribe(x => console.log(x)) // every values will be interpolated
+)
 ```
 
 #### createState :: Object -> State

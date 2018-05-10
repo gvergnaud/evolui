@@ -1,6 +1,5 @@
-import { Observable } from 'rxjs/Observable'
-import { Subject } from 'rxjs/Subject'
-import { curry, pipe } from './functions'
+import { Observable, Subject } from 'rxjs'
+import { curry } from './functions'
 import { last, init } from './arrays'
 
 export const isPromise = p => p && typeof p.then === 'function'
@@ -267,28 +266,6 @@ export const raf = new Observable(observer => {
       isSubscribed = false
     }
   }
-})
-
-const addOperator = (C, name, f) => {
-  C.prototype[name] = f
-}
-;[
-  { name: 'pipe', f: pipe },
-  { name: 'map', f: map },
-  { name: 'filter', f: filter },
-  { name: 'scan', f: scan },
-  { name: 'startWith', f: startWith },
-  { name: 'share', f: share },
-  { name: 'shareReplay', f: shareReplay },
-  { name: 'sample', f: sample },
-  { name: 'switchMap', f: switchMap }
-].forEach(({ name, f }) => {
-  addOperator(Observable, name, function(...args) {
-    return f(...args)(this)
-  })
-  addOperator(Subject, name, function(...args) {
-    return f(...args)(this)
-  })
 })
 
 export { Subject, Observable }
