@@ -1,69 +1,23 @@
 import html, { render } from 'evolui'
 import { createState } from 'evolui/extra'
-import { map } from 'rxjs/operators'
 
-import Select from './components/Select'
-import PinterestLikeGrid from './components/animations/PinterestLikeGrid'
-import ComplexAnimation from './components/animations/ComplexAnimation'
-import SimpleAnimation from './components/animations/SimpleAnimation'
-import SvgAnimation from './components/animations/SvgAnimation'
-import Spreadsheet from './components/Spreadsheet'
-import Ticker from './components/Ticker'
-import TodoList from './components/TodoList'
 import Chat from './components/Chat'
-import MouseTracker from './components/MouseTracker'
-import HttpRequest from './components/HttpRequest'
 
 import './index.css'
 
-const examples = [
-  { title: 'ComplexAnimation', value: 'ComplexAnimation' },
-  { title: 'Spreadsheet', value: 'Spreadsheet' },
-  { title: 'TodoList', value: 'TodoList' },
-  { title: 'SimpleAnimation', value: 'SimpleAnimation' },
-  { title: 'SvgAnimation', value: 'SvgAnimation' },
-  { title: 'PinterestLikeGrid', value: 'PinterestLikeGrid' },
-  { title: 'Chat', value: 'Chat' },
-  { title: 'MouseTracker', value: 'MouseTracker' },
-  { title: 'HttpRequest', value: 'HttpRequest' },
-  { title: 'Ticker', value: 'Ticker' }
-]
-
-const components = {
-  PinterestLikeGrid,
-  ComplexAnimation,
-  SimpleAnimation,
-  SvgAnimation,
-  Spreadsheet,
-  Ticker,
-  TodoList,
-  Chat,
-  MouseTracker,
-  HttpRequest
-}
-
-const App = () => {
-  const state = createState({ selectedExample: 'ComplexAnimation' })
+const ChatWrapper = () => {
+  const state = createState({ username: '' })
 
   return html`
-    <div>
-      <h3>A few examples of what you can do with evolui 🚀</h3>
-
-      <p>
-        Choose an example 👉
-        <${Select}
-          value=${state.selectedExample}
-          onChange=${state.selectedExample.set}
-          options=${examples}
-        />
-      </p>
-
-      ${state.selectedExample.pipe(
-        map(name => components[name]),
-        map(Component => html`<${Component} />`)
-      )}
-    </div>
-  `
+        <div>
+          <input
+            placeholder="username"
+            value=${state.username}
+            onInput=${e => state.username.set(e.target.value)}
+          />
+          <${Chat} username=${state.username} />
+        </div>
+      `
 }
 
-render(App(), document.querySelector('#root'))
+render(html`<${ChatWrapper} />`, document.querySelector('#root'))

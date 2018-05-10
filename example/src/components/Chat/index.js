@@ -1,50 +1,61 @@
-import io from 'socket.io-client'
-import { Observable } from 'rxjs'
 import html from 'evolui'
-
-const socket = io('https://chat-server-dkkxygrves.now.sh')
-
-const message$ = new Observable(observer => {
-  socket.on('message', message => observer.next(message))
-})
+import { all, createActions } from 'evolui/extra'
+import { filter, map, tap } from 'rxjs/operators'
+import createSocket from './createSocket'
 
 const Chat = props$ => {
+  const socket = createSocket()
+
   const actions = createActions({
-    changeText: stream => stream.map(e => e.target.value),
-    sendMessage: stream =>
-      all([
-        props$.map(p => p.username),
-        stream.filter(e => e.which === 13)
-      ]).map(([username, message]) =>
-        socket.emit('message', { username, message })
-      )
+    changeText: stream => stream,
+    sendMessage: (stream, getState) =>
+      stream.pipe(
+        filter(e => e.which === 13),
+        map(() => ({
+          username: props$.value.username,
+          message: getState().text
+        })),
+        tap(data => socket.emit('message', data)),
+        tap(() => actions.changeText(''))
+      ),
+    addMessage: () => socket.on('message')
   })
 
   const initialState = {
     text: '',
-    messages: [],
-    activeUsers: []
+    messages: []
   }
 
-  const state = createState(initialState, [
-    actions.changeText$.map(text => state => ({ text })),
-    actions.sendMessage$.map(() => () => ({ text: '' })),
-    message$.map(message => state => ({
-      messages: states.messages.concat(message)
-    }))
-  ])
+  const state$ = actions.foldState(initialState, {
+    changeText: (state, text) => ({ text }),
+    addMessage: (state, message) => ({
+      messages: [...state.messages, message]
+    })
+  })
 
-  return html`
-    <div>
-        <input
-          onInput=${actions.changeText}
-          onKeyDown=${actions.sendMessage} />
-        ${message$
-          .scan((acc, x) => [...acc, x], [])
-          .startWith([])
-          .map(messages => messages.map(message => html`<p>${message}</p>`))}
-    </div>
-  `
+  return all([state$, props$]).pipe(
+    map(
+      ([state, props]) => html`
+        <div>
+          ${props.username ? html`<h1>Hello, ${props.username}</h1>` : ''}
+
+          <input
+            placeholder="message"
+            value=${state.text}
+            onInput=${e => actions.changeText(e.target.value)}
+            onKeyDown=${actions.sendMessage}
+          />
+
+          <ul>
+            ${state.messages.map(
+              ({ username, message }) => html`
+                <li>${username}: ${message}</li>
+              `
+            )}
+          </ul>
+        </div>
+      `
+    )
+  )
 }
-
 export default Chat
