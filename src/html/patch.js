@@ -39,7 +39,7 @@ export default function patch(
     const newNode = vTree.updateElement(node, previousTree, isSvg, patch)
     if (newNode) {
       node.parentNode.replaceChild(newNode, node)
-      vTree.mount(newNode)
+      vTree.mount(newNode, isSvg)
       return newNode
     } else {
       return node

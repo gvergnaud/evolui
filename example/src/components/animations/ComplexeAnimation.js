@@ -158,7 +158,7 @@ const GrabbableCircle = props$ => {
   )
 }
 
-export default () => {
+const ComplexAnimation = () => {
   const { onDragStart, drag$, isDragging$ } = createDragHandler()
   return html`
     <div mount="${() => console.log('complex create')}">
@@ -201,3 +201,5 @@ export default () => {
     </div>
   `
 }
+
+export default ComplexAnimation

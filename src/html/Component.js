@@ -1,5 +1,6 @@
 import { Subject, sample } from '../utils/observables'
 import { flatten, sharedRaf } from '../core'
+import VPatch from './VPatch'
 
 function createPropsStream(props) {
   const sub = new Subject()
@@ -34,8 +35,12 @@ export default class Component {
       .pipe(flatten, sample(sharedRaf))
       .subscribe({
         next: newChildTree => {
-          node = patch(node, this.state.childTree, newChildTree, isSvg)
-          this.state.childTree = newChildTree
+          if (newChildTree instanceof VPatch) {
+            this.state.childTree = newChildTree.vTree
+          } else {
+            node = patch(node, this.state.childTree, newChildTree, isSvg)
+            this.state.childTree = newChildTree
+          }
         },
         error: e => console.error(e)
       })
@@ -44,11 +49,12 @@ export default class Component {
   }
 
   updateElement(node, previousComponent, isSvg, patch) {
+    this.state = previousComponent.state
+
     if (previousComponent.name !== this.name) {
       previousComponent.removeElement(node)
       return this.createElement(isSvg, patch)
     } else {
-      this.state = previousComponent.state
       this.state.props.next(this.untouchedAttributes)
     }
   }

@@ -109,17 +109,26 @@ export const switchMap = curry((switchMapper, stream) => {
   let subscription
 
   return new Observable(observer => {
+    let isOuterStreamComplete = false
+    let isInnerStreamComplete = false
+
     const sub = stream.subscribe({
       next: x => {
         if (subscription) subscription.unsubscribe()
         subscription = switchMapper(x).subscribe({
           error: e => observer.error(e),
           next: x => observer.next(x),
-          complete: () => {}
+          complete: () => {
+            isInnerStreamComplete = true
+            if (isOuterStreamComplete) observer.complete()
+          }
         })
       },
       error: e => observer.error(e),
-      complete: () => {}
+      complete: () => {
+        isOuterStreamComplete = true
+        if (isInnerStreamComplete) observer.complete()
+      }
     })
 
     return {
@@ -139,7 +148,7 @@ export const sample = curry((sampleStream, stream) => {
       next: value => {
         latestValue = value
       },
-      complete: () => {},
+      complete: () => observer.complete(),
       error: e => observer.error(e)
     })
 
@@ -231,6 +240,15 @@ export const shareReplay = curry((count, stream) => {
 })
 
 export const share = shareReplay(0)
+
+export const blockComplete = () => stream =>
+  new Observable(observer =>
+    stream.subscribe({
+      complete: () => {},
+      next: x => observer.next(x),
+      error: e => observer.error(e)
+    })
+  )
 
 export const raf = new Observable(observer => {
   let isSubscribed = true

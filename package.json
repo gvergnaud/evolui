@@ -1,12 +1,11 @@
 {
   "name": "evolui",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "",
   "main": "lib/evolui.js",
   "scripts": {
     "clean": "rimraf lib",
-    "build":
-      "npm run clean && BABEL_ENV=production rollup --config rollup.config.js",
+    "build": "npm run clean && BABEL_ENV=production rollup --config rollup.config.js",
     "prepare": "npm run clean && npm run build",
     "test": "jest"
   },

@@ -10,7 +10,8 @@ import {
   filter,
   switchMap,
   sample,
-  share
+  share,
+  blockComplete
 } from './utils/observables'
 
 import { isEmpty } from './utils/misc'
@@ -28,6 +29,7 @@ const hasContent = xs => !xs.length || !xs.every(isEmpty)
 export const flatten = variable =>
   Array.isArray(variable)
     ? all(variable.map(compose(startWith(''), flatten))).pipe(
+        blockComplete(),
         filter(hasContent)
       )
     : isObservable(variable)
