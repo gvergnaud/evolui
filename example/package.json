@@ -22,8 +22,7 @@
     "sagui": "^10.0.1"
   },
   "dependencies": {
-    "evolui": "^1.4.1",
-    "hyperx": "^2.3.2",
+    "evolui": "^1.4.2",
     "immutable-deep-update": "^1.0.1",
     "rxjs": "^5.4.3",
     "socket.io-client": "^2.0.4"

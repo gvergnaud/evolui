@@ -1,5 +1,6 @@
 import VNode from './VNode'
 import VText from './VText'
+import VPatch from './VPatch'
 import Component from './Component'
 
 import { flatMap } from '../utils/arrays'
@@ -20,7 +21,7 @@ const formatChildren = flatMap(
   c =>
     Array.isArray(c)
       ? formatChildren(c)
-      : [VNode, VText, Component].some(C => c instanceof C)
+      : [VNode, VText, VPatch, Component].some(C => c instanceof C)
         ? [c]
         : isEmpty(c)
           ? []
