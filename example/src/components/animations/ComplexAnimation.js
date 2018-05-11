@@ -1,93 +1,100 @@
-import { Observable, Subject } from 'rxjs'
-import html, { ease } from 'evolui'
-
-const addPosition = e => {
-  e.position = e.type.match(/^touch/)
-    ? { x: e.touches[0].clientX, y: e.touches[0].clientY }
-    : { x: e.clientX, y: e.clientY }
-
-  return e
-}
+import html, { text, ease } from 'evolui'
+import { Subject, fromEvent, merge, empty, interval } from 'rxjs'
+import { map, switchMap, startWith, share, takeUntil } from 'rxjs/operators'
+import { addPosition } from '../../utils'
 
 const rand = (start, end) => start + Math.random() * (end - start)
 
-const mouse$ = Observable.merge(
-  Observable.fromEvent(window, 'mousemove').map(addPosition),
-  Observable.fromEvent(window, 'touchmove').map(addPosition)
-)
-
-const end$ = Observable.merge(
-  Observable.fromEvent(window, 'mouseup'),
-  Observable.fromEvent(window, 'touchend')
-)
-
 const createDragHandler = () => {
-  const start = new Subject()
-  const onDragStart = e => start.next(e)
-  const start$ = start.map(addPosition)
+  const mouse$ = merge(
+    fromEvent(window, 'mousemove').pipe(map(addPosition)),
+    fromEvent(window, 'touchmove').pipe(map(addPosition))
+  )
 
-  const drag$ = start$
-    .switchMap(({ target, position: initPosition }) => {
+  const end$ = merge(
+    fromEvent(window, 'mouseup'),
+    fromEvent(window, 'touchend')
+  )
+
+  const start$ = new Subject()
+  const onDragStart = e => start$.next(e)
+
+  const drag$ = start$.pipe(
+    map(addPosition),
+    switchMap(({ target, position: initPosition }) => {
       const { left, top } = target.getBoundingClientRect()
-      return mouse$
-        .map(({ position }) => ({
+      return mouse$.pipe(
+        map(({ position }) => ({
           left: initPosition.x - left,
           top: initPosition.y - top,
           x: position.x - (initPosition.x - left),
           y: position.y - (initPosition.y - top)
-        }))
-        .takeUntil(end$)
-    })
-    .share()
+        })),
+        takeUntil(end$)
+      )
+    }),
+    share()
+  )
 
-  const isDragging$ = start$
-    .map(() => true)
-    .merge(end$.map(() => false))
-    .startWith(false)
+  const isDragging$ = merge(
+    start$.pipe(map(() => true)),
+    end$.pipe(map(() => false))
+  ).pipe(startWith(false))
 
   return {
     onDragStart,
     drag$,
-    dragStart$: start.$,
-    dragEnd$: drag$.switchMap(() => end$),
+    dragStart$: start$,
+    dragEnd$: drag$.pipe(switchMap(() => end$)),
     isDragging$
   }
 }
 
 const Circle = props$ =>
-  props$.map(
-    ({
-      onDragStart,
-      position$,
-      isDragging$,
-      color = 'purple',
-      radius = 25,
-      stiffness = 120,
-      damping = 20
-    }) =>
-      html`
-        <div
-          ontouchstart="${onDragStart}"
-          onmousedown="${onDragStart}"
-          style="
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: ${radius * 2}px;
-            height: ${radius * 2}px;
-            background: ${color};
-            border-radius: 100%;
-            transform: translate(
-              ${position$.map(p => p.x).switchMap(ease(stiffness, damping))}px,
-              ${position$.map(p => p.y).switchMap(ease(stiffness, damping))}px
-            );
-            cursor: ${isDragging$.map(
-              isDraging => (isDraging ? '-webkit-grabbing' : '-webkit-grab')
-            )};
-            user-select: none;
-          ">
-        </div>
-      `
+  props$.pipe(
+    map(
+      ({
+        onDragStart,
+        position$,
+        isDragging$,
+        color = 'purple',
+        radius = 25,
+        stiffness = 120,
+        damping = 20
+      }) => {
+        const style$ = text`
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: ${radius * 2}px;
+          height: ${radius * 2}px;
+          background: ${color};
+          border-radius: 100%;
+          transform: translate(
+            ${position$.pipe(
+              map(p => p.x),
+              switchMap(ease(stiffness, damping))
+            )}px,
+            ${position$.pipe(
+              map(p => p.y),
+              switchMap(ease(stiffness, damping))
+            )}px
+          );
+          cursor: ${isDragging$.pipe(
+            map(isDraging => (isDraging ? '-webkit-grabbing' : '-webkit-grab'))
+          )};
+          user-select: none;
+        `
+
+        return html`
+          <div
+            ontouchstart="${onDragStart}"
+            onmousedown="${onDragStart}"
+            style="${style$}">
+          </div>
+        `
+      }
+    )
   )
 
 const GrabbableCircle = props$ => {
@@ -100,66 +107,76 @@ const GrabbableCircle = props$ => {
     y: 0.5 * window.innerHeight
   })
 
-  return props$.switchMap(
-    ({
-      exploadEvery,
-      onDragStart,
-      drag$,
-      isDragging$,
-      radius = 25,
-      r,
-      g,
-      b
-    }) => {
-      const position$ = drag$
-        .map(drag => ({
-          x: drag.x + drag.left,
-          y: drag.y + drag.top
-        }))
-        .merge(
-          isDragging$.switchMap(
-            bool =>
-              bool
-                ? Observable.empty()
-                : Observable.interval(900)
-                    .map(x => x)
-                    .map(x => (x % exploadEvery ? randomPosition() : center()))
-                    .startWith(randomPosition())
+  return props$.pipe(
+    switchMap(
+      ({
+        exploadEvery,
+        onDragStart,
+        drag$,
+        isDragging$,
+        radius = 25,
+        r,
+        g,
+        b
+      }) => {
+        const position$ = merge(
+          drag$.pipe(
+            map(drag => ({
+              x: drag.x + drag.left,
+              y: drag.y + drag.top
+            }))
+          ),
+          isDragging$.pipe(
+            switchMap(
+              bool =>
+                bool
+                  ? empty()
+                  : interval(900).pipe(
+                      map(x => x),
+                      map(
+                        x => (x % exploadEvery ? randomPosition() : center())
+                      ),
+                      startWith(randomPosition())
+                    )
+            )
           )
-        )
-        .startWith(center())
+        ).pipe(startWith(center()))
 
-      return html`
-        <div>
-          ${Array(7)
-            .fill(0)
-            .map(
-              (_, i, xs) =>
-                html`
-                  <${Circle}
-                    ${{
-                      isDragging$,
-                      position$: position$.map(({ x, y }) => ({
-                        x: x - (radius + i),
-                        y: y - (radius + i)
-                      })),
-                      onDragStart: onDragStart,
-                      stiffness: 120 + 15 * i,
-                      damping: 25 - i * 2,
-                      radius: radius + i,
-                      color: `rgba(${r}, ${g}, ${b}, ${i / xs.length})`
-                    }}
-                  />
-                `
-            )}
-        </div>
-      `
-    }
+        return html`
+          <div>
+            ${Array(7)
+              .fill(0)
+              .map(
+                (_, i, xs) =>
+                  html`
+                    <${Circle}
+                      ${{
+                        isDragging$,
+                        position$: position$.pipe(
+                          map(({ x, y }) => ({
+                            x: x - (radius + i),
+                            y: y - (radius + i)
+                          }))
+                        ),
+                        onDragStart: onDragStart,
+                        stiffness: 120 + 15 * i,
+                        damping: 25 - i * 2,
+                        radius: radius + i,
+                        color: `rgba(${r}, ${g}, ${b}, ${i / xs.length})`
+                      }}
+                    />
+                  `
+              )}
+          </div>
+        `
+      }
+    )
   )
 }
 
 const ComplexAnimation = () => {
   const { onDragStart, drag$, isDragging$ } = createDragHandler()
+
   return html`
     <div mount="${() => console.log('complex create')}">
       <${GrabbableCircle}

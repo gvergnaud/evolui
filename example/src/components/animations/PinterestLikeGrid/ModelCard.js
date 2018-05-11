@@ -1,4 +1,5 @@
 import html from 'evolui'
+import { map } from 'rxjs/operators'
 import './index.css'
 
 const getImageUrl = ({ thumbnails: { images } }) =>
@@ -11,26 +12,28 @@ const getImageUrl = ({ thumbnails: { images } }) =>
   ).url
 
 const ModelCard = props$ => {
-  const style$ = props$.map(
-    ({ x, y, width, height }) => `
-      transform: translate(${x}px, ${y}px);
-      height: ${height}px;
-      width: ${width}px;
-    `
+  const style$ = props$.pipe(
+    map(
+      ({ x, y, width, height }) => `
+        transform: translate(${x}px, ${y}px);
+        height: ${height}px;
+        width: ${width}px;
+      `
+    )
   )
 
   return html`
     <a
       target="_blank"
-      href="${props$.map(p => p.model.viewerUrl)}"
+      href="${props$.pipe(map(p => p.model.viewerUrl))}"
       class="card"
       style="${style$}">
       <div
         class="cardImage"
-        style="background-image: url(${props$.map(p =>
-          getImageUrl(p.model)
+        style="background-image: url(${props$.pipe(
+          map(p => getImageUrl(p.model))
         )});"></div>
-      <p class="name">${props$.map(p => p.model.name)}</p>
+      <p class="name">${props$.pipe(map(p => p.model.name))}</p>
     </a>
   `
 }

@@ -1,16 +1,23 @@
 {
   "name": "evolui",
-  "version": "1.4.2",
-  "description": "",
+  "version": "1.5.0",
+  "description": "Observable powered templates for asynchronous UIs",
   "main": "lib/evolui.js",
   "scripts": {
     "clean": "rimraf lib",
-    "build": "npm run clean && BABEL_ENV=production rollup --config rollup.config.js",
+    "build":
+      "npm run clean && BABEL_ENV=production rollup --config rollup.config.js",
     "prepare": "npm run clean && npm run build",
     "test": "jest"
   },
   "author": "Gabriel Vergnaud <github.com/gvergnaud>",
   "license": "MIT",
+  "dependencies": {
+    "vdom-tag": "^0.1.1"
+  },
+  "peerDependencies": {
+    "rxjs": "^6.1.0"
+  },
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-eslint": "^8.2.2",
@@ -29,8 +36,6 @@
     "rollup-plugin-babel": "^3.0.2",
     "rollup-plugin-commonjs": "^8.2.6",
     "rollup-plugin-node-resolve": "^3.0.0",
-    "rollup-plugin-uglify": "^3.0.0",
-    "rxjs": "^5.5.7",
-    "vdom-tag": "^0.1.1"
+    "rollup-plugin-uglify": "^3.0.0"
   }
 }

@@ -1,32 +1,33 @@
 import html, { text, createState } from 'evolui'
 import { set } from 'immutable-deep-update'
-import { Observable } from 'rxjs'
+import { from, of } from 'rxjs'
+import { distinctUntilChanged, switchMap, map } from 'rxjs/operators'
 import initialCellsState from './initialCellsState'
 
 import './index.css'
 
-const range = (start, end) =>
-  Array(end - start)
-    .fill(0)
-    .map((_, i) => i + start)
-const flatMap = (f, xs) => xs.reduce((acc, x) => acc.concat(f(x)), [])
-const flatten = xs => flatMap(x => x, xs)
-const addQuotes = str => `"${str.replace('"', '\\"')}"`
-
-const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-const rowCount = 15
-const colCount = 8
-
-const createKey = (i, j) => `${j}${i}`
-
-const createCellState = (value = '') => ({ value, focus: false })
-
-const formulaRegexp = /^\{(.+)\}$/
-const cellRefRegexp = /([A-Z][0-9]+)/g
-const isNumber = x => !isNaN(parseFloat(x)) && !x.match(/([a-z]|\s)/i)
-const isValidExpression = x => isNumber(x) || formulaRegexp.test(x)
-
 const Spreadsheet = () => {
+  const range = (start, end) =>
+    Array(end - start)
+      .fill(0)
+      .map((_, i) => i + start)
+  const flatMap = (f, xs) => xs.reduce((acc, x) => acc.concat(f(x)), [])
+  const flatten = xs => flatMap(x => x, xs)
+  const addQuotes = str => `"${str.replace('"', '\\"')}"`
+
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const rowCount = 15
+  const colCount = 8
+
+  const createKey = (i, j) => `${j}${i}`
+
+  const createCellState = (value = '') => ({ value, focus: false })
+
+  const formulaRegexp = /^\{(.+)\}$/
+  const cellRefRegexp = /([A-Z][0-9]+)/g
+  const isNumber = x => !isNaN(parseFloat(x)) && !x.match(/([a-z]|\s)/i)
+  const isValidExpression = x => isNumber(x) || formulaRegexp.test(x)
+
   const grid = range(0, rowCount).map(i =>
     range(0, colCount).map(j => [i + 1, alphabet[j]])
   )
@@ -47,30 +48,34 @@ const Spreadsheet = () => {
     const strings = parsed.filter(str => !cellRefRegexp.test(str))
     const variables = parsed.filter(str => cellRefRegexp.test(str)).map(key =>
       // eslint-disable-next-line
-      getCellValue(key).map(
-        value => (isValidExpression(value) ? value : addQuotes(value))
+      getCellValue(key).pipe(
+        map(value => (isValidExpression(value) ? value : addQuotes(value)))
       )
     )
 
-    return Observable.from(text(strings, ...variables)).map(expr => {
-      try {
-        return `${eval(expr)}` // unsafe but good enough for the example
-      } catch (e) {
-        return expr
-      }
-    })
+    return from(text(strings, ...variables)).pipe(
+      map(expr => {
+        try {
+          return `${eval(expr)}` // unsafe but good enough for the example
+        } catch (e) {
+          return expr
+        }
+      })
+    )
   }
 
-  const getCellState = key => Observable.from(state[key]).distinctUntilChanged()
+  const getCellState = key => from(state[key]).pipe(distinctUntilChanged())
 
   const getCellValue = key =>
-    getCellState(key).switchMap(({ value, focus }) => {
-      if (focus || !formulaRegexp.test(value)) return Observable.of(value)
-      const [, formula] = value.match(formulaRegexp)
-      return parseFormula(formula)
-    })
+    getCellState(key).pipe(
+      switchMap(({ value, focus }) => {
+        if (focus || !formulaRegexp.test(value)) return of(value)
+        const [, formula] = value.match(formulaRegexp)
+        return parseFormula(formula)
+      })
+    )
 
-  const getCellFocus = key => getCellState(key).map(({ focus }) => focus)
+  const getCellFocus = key => getCellState(key).pipe(map(({ focus }) => focus))
 
   const setCellFocus = (key, focus) => state[key].set(set('focus', focus))
 
@@ -93,8 +98,8 @@ const Spreadsheet = () => {
                 key => html`
                   <td>
                     <input
-                      ${getCellFocus(key).map(
-                        focus => (focus ? 'autofocus' : '')
+                      ${getCellFocus(key).pipe(
+                        map(focus => (focus ? 'autofocus' : ''))
                       )}
                       value="${getCellValue(key)}"
                       onFocus="${() => setCellFocus(key, true)}"
@@ -122,6 +127,6 @@ export default () => html`
     <p>Manipulate other cells with <strong>javascript</strong>.</p>
     <p>Example: try typing ${Code('{A2 + B2}')} in a cell</p>
     <p>
-    ${Spreadsheet()}
+    <${Spreadsheet} />
   </div>
 `

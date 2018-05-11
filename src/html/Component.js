@@ -1,4 +1,4 @@
-import { Subject, sample } from '../utils/observables'
+import { Subject, sample, startWith, shareReplay } from '../utils/observables'
 import { flatten, sharedRaf } from '../core'
 import VPatch from './VPatch'
 
@@ -6,12 +6,15 @@ function createPropsStream(props) {
   const sub = new Subject()
   return {
     next: props => sub.next(props),
-    stream: sub.startWith(props).shareReplay(1)
+    stream: sub.pipe(startWith(props), shareReplay(1))
   }
 }
 
 export default class Component {
   constructor({ name, untouchedAttributes, key = '' }) {
+    if (typeof name !== 'function')
+      throw new TypeError('evolui Components must be functions')
+
     this.name = name
     this.untouchedAttributes = untouchedAttributes
     this.key = key

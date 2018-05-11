@@ -1,11 +1,10 @@
 import html from 'evolui'
-import { Observable } from 'rxjs'
+import { interval } from 'rxjs'
+import { map, startWith } from 'rxjs/operators'
 
 const Ticker = () => html`
   <span>
-    ${Observable.interval(1000)
-      .map(x => x + 1)
-      .startWith(0)}
+    ${interval(1000).pipe(map(x => x + 1), startWith(0))}
   </span>
 `
 

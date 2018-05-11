@@ -1,15 +1,20 @@
 import html from 'evolui'
-import { Observable } from 'rxjs'
+import { fromEvent } from 'rxjs'
+import { map, startWith, share } from 'rxjs/operators'
 
-const mouse = Observable.fromEvent(window, 'mousemove')
-  .map(e => ({ x: e.clientX, y: e.clientY }))
-  .startWith({ x: 0, y: 0 })
+const MouseTracker = () => {
+  const mouse = fromEvent(window, 'mousemove').pipe(
+    map(e => ({ x: e.clientX, y: e.clientY })),
+    startWith({ x: 0, y: 0 }),
+    share()
+  )
 
-const MouseTracker = () => html`
-  <div>
-    <span>x: ${mouse.map(({ x }) => x)}</span>
-    <span>y: ${mouse.map(({ y }) => y)}</span>
-  </div>
-`
+  return html`
+    <div>
+      <span>x: ${mouse.pipe(map(({ x }) => x))}</span>
+      <span>y: ${mouse.pipe(map(({ y }) => y))}</span>
+    </div>
+  `
+}
 
 export default MouseTracker

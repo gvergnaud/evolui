@@ -1,5 +1,6 @@
 import html from 'evolui'
-import { Observable } from 'rxjs'
+import { from } from 'rxjs'
+import { startWith } from 'rxjs/operators'
 
 const getCharacter = id =>
   fetch(`https://swapi.co/api/people/${id}`)
@@ -10,10 +11,10 @@ const HttpRequest = () => html`
   <div>
     ${[1, 2, 3].map(
       id => html`
-      <h1>
-        ${Observable.fromPromise(getCharacter(id)).startWith('Loading...')}
-      </h1>
-    `
+        <h1>
+          ${from(getCharacter(id)).pipe(startWith('Loading...'))}
+        </h1>
+      `
     )}
   </div>
 `
