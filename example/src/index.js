@@ -8,14 +8,14 @@ import HttpRequest from './components/HttpRequest'
 import Chat from './components/Chat'
 import Spreadsheet from './components/Spreadsheet'
 import SimpleAnimation from './components/animations/SimpleAnimation'
-import ComplexeAnimation from './components/animations/ComplexeAnimation'
+import ComplexAnimation from './components/animations/ComplexAnimation'
 import SvgAnimation from './components/animations/SvgAnimation'
 import PinterestLikeGrid from './components/animations/PinterestLikeGrid'
 
 import './index.css'
 
 const examples = [
-  { title: 'ComplexeAnimation', value: 'ComplexeAnimation' },
+  { title: 'ComplexAnimation', value: 'ComplexAnimation' },
   { title: 'Spreadsheet', value: 'Spreadsheet' },
   { title: 'TodoList', value: 'TodoList' },
   { title: 'SimpleAnimation', value: 'SimpleAnimation' },
@@ -31,7 +31,7 @@ const components = {
   Spreadsheet,
   TodoList,
   SimpleAnimation,
-  ComplexeAnimation,
+  ComplexAnimation,
   SvgAnimation,
   PinterestLikeGrid,
   Chat,
@@ -41,7 +41,7 @@ const components = {
 }
 
 const App = () => {
-  const state = createState({ selectedExample: 'ComplexeAnimation' })
+  const state = createState({ selectedExample: 'ComplexAnimation' })
 
   const component$ = state.selectedExample.map(name => components[name])
 
