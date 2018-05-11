@@ -1,6 +1,6 @@
 # evolui
 
-A `8kb` reactive user interface library.
+A tiny reactive user interface library.
 
 Evolui magically understands Observable and Promises and takes care of refreshing your UI when they emit new values.
 You can only care about where the data should be displayed.
@@ -32,7 +32,7 @@ render(
       Hello, ${delay(1000).then(() => 'World!')}
     </p>
   `,
-  document.body
+  document.querySelector('#mount')
 )
 ```
 
@@ -54,7 +54,7 @@ render(
       )}
     </p>
   `,
-  document.body
+  document.querySelector('#mount')
 )
 ```
 
@@ -108,7 +108,7 @@ const Button = props$ =>
     map(
       ({ text, onClick }) => html`
         <button class="Button" onClick=${onClick}>
-            ${text}
+          ${text}
         </button>
       `
     )
@@ -134,7 +134,27 @@ const App = () => {
   `
 }
 
-render(html`<${App} />`, document.body)
+render(html`<${App} />`, document.querySelector('#mount'))
+```
+
+### children
+
+Components can have children 👍
+
+```js
+import html, { render } from 'evolui'
+import { map } from 'rxjs/operators'
+
+const CrazyLayout = map(({ children }) => html`<div>${children}</div>`)
+
+render(
+  html`
+    <${CrazyLayout}>
+      <p>I'm the content</p>
+    </${CrazyLayout}>
+  `,
+  document.querySelector('#mount')
+)
 ```
 
 ## Animations
@@ -167,7 +187,7 @@ render(
       );"
     />
   `,
-  document.body
+  document.querySelector('#mount')
 )
 ```
 
@@ -201,7 +221,7 @@ const App = () => html`
 ```js
 import { render } from 'evolui'
 
-render(html`<${App} />`, document.body)
+render(html`<${App} />`, document.querySelector('#mount'))
 ```
 
 #### ease :: (Number, Number) -> Observable Number -> Observable Number
@@ -243,7 +263,7 @@ render(
       <button onClick=${add1}>+</button>
     </div>
   `,
-  document.body
+  document.querySelector('#mount')
 )
 ```
 
