@@ -1,13 +1,26 @@
 import html from 'evolui'
-import { all, createActions } from 'evolui/extra'
+import { all, createActions, createState } from 'evolui/extra'
 import { filter, map, tap } from 'rxjs/operators'
 import createSocket from './createSocket'
+
+const Repeat = () => {
+  const state = createState({ value: '' })
+  return html`
+    <div>
+      <input
+        value=${state.value}
+        onInput=${e => state.value.set(e.target.value)} />
+      <p>${state.value}</p>
+    </div>
+  `
+}
 
 const Chat = props$ => {
   const socket = createSocket()
 
   const actions = createActions({
-    changeText: stream => stream,
+    changeText: stream =>
+      stream.pipe(map(e => (typeof e === 'string' ? e : e.target.value))),
     sendMessage: (stream, getState) =>
       stream.pipe(
         filter(e => e.which === 13),
@@ -42,7 +55,7 @@ const Chat = props$ => {
           <input
             placeholder="message"
             value=${state.text}
-            onInput=${e => actions.changeText(e.target.value)}
+            onInput=${actions.changeText}
             onKeyDown=${actions.sendMessage}
           />
 
@@ -53,6 +66,8 @@ const Chat = props$ => {
               `
             )}
           </ul>
+
+          <${Repeat} />
         </div>
       `
     )
