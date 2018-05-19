@@ -66,6 +66,27 @@ render(
 
 ![Observable demo](https://github.com/gvergnaud/evolui/blob/media/gifs/evolui-2.gif?raw=true)
 
+## Simple App
+
+```js
+import html, { render } from 'evolui'
+import { createState } from 'evolui/extra'
+
+const Counter = () => {
+  const state = createState({ count: 0 })
+
+  return html`
+    <div>
+      count: ${state.count}
+      <button onClick=${() => state.count.set(c => c - 1)}>-</div>
+      <button onClick=${() => state.count.set(c => c + 1)}>+</div>
+    </div>
+  `
+}
+
+render(html`<${Counter} />`, document.querySelector('#mount'))
+```
+
 ## Concept
 
 The main goal of evolui is to make dealing with observables as easy as dealing with regular values.
