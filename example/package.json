@@ -22,7 +22,7 @@
     "sagui": "^10.0.1"
   },
   "dependencies": {
-    "evolui": "^1.4.2",
+    "evolui": "^1.6.1",
     "immutable-deep-update": "^1.0.1",
     "rxjs": "^6.1.0",
     "socket.io-client": "^2.0.4"
