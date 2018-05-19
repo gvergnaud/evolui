@@ -1,6 +1,6 @@
 import { Subject, merge } from 'rxjs'
 import { scan, startWith, shareReplay, map } from 'rxjs/operators'
-import { mapValues } from './utils/objects'
+import { mapValues } from '../utils/objects'
 
 const createActions = actionMappers => {
   const actions = mapValues(mapper => {
