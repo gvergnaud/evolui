@@ -1,4 +1,5 @@
-import html, { text, createState } from 'evolui'
+import html, { text } from 'evolui'
+import { createState } from 'evolui/extra'
 import { set } from 'immutable-deep-update'
 import { from, of } from 'rxjs'
 import { distinctUntilChanged, switchMap, map } from 'rxjs/operators'

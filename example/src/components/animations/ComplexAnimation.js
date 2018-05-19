@@ -1,4 +1,5 @@
-import html, { text, ease } from 'evolui'
+import html, { text } from 'evolui'
+import { ease } from 'evolui/extra'
 import { Subject, fromEvent, merge, empty, interval } from 'rxjs'
 import { map, switchMap, startWith, share, takeUntil } from 'rxjs/operators'
 import { addPosition } from '../../utils'
@@ -71,14 +72,8 @@ const Circle = props$ =>
           background: ${color};
           border-radius: 100%;
           transform: translate(
-            ${position$.pipe(
-              map(p => p.x),
-              switchMap(ease(stiffness, damping))
-            )}px,
-            ${position$.pipe(
-              map(p => p.y),
-              switchMap(ease(stiffness, damping))
-            )}px
+            ${position$.pipe(map(p => p.x), ease(stiffness, damping))}px,
+            ${position$.pipe(map(p => p.y), ease(stiffness, damping))}px
           );
           cursor: ${isDragging$.pipe(
             map(isDraging => (isDraging ? '-webkit-grabbing' : '-webkit-grab'))

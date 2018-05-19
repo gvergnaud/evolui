@@ -1,4 +1,5 @@
-import html, { ease, all, createState } from 'evolui'
+import html from 'evolui'
+import { ease, all, createState } from 'evolui/extra'
 import { fromEvent } from 'rxjs'
 import { map, startWith } from 'rxjs/operators'
 
@@ -39,8 +40,8 @@ const SvgAnimation = () => {
       height="${window$.pipe(map(w => w.height))}"
       width="${window$.pipe(map(w => w.width))}">
       <circle
-        cx="${position$.pipe(map(p => p.x), map(ease(120, 18)))}"
-        cy="${position$.pipe(map(p => p.y), map(ease(120, 18)))}"
+        cx="${position$.pipe(map(p => p.x), ease(120, 18))}"
+        cy="${position$.pipe(map(p => p.y), ease(120, 18))}"
         r="40"
         fill="rgba(57, 77, 255)" />
     </svg>

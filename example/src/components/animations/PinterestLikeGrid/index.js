@@ -1,4 +1,5 @@
-import html, { createState } from 'evolui'
+import html from 'evolui'
+import { createState } from 'evolui/extra'
 import { from } from 'rxjs'
 import { startWith, switchMap } from 'rxjs/operators'
 import './index.css'

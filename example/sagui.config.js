@@ -12,7 +12,7 @@ module.exports = {
     resolve: {
       alias: {
         evolui: path.join(__dirname, '../src')
-        // evolui: path.join(__dirname, '../lib/evolui.js')
+        // evolui: path.join(__dirname, '../')
       }
     }
   }

@@ -1,4 +1,5 @@
-import html, { render, createState } from 'evolui'
+import html, { render } from 'evolui'
+import { createState } from 'evolui/extra'
 import { map } from 'rxjs/operators'
 
 import Select from './components/Select'

@@ -2,8 +2,12 @@
 
 A tiny reactive user interface library.
 
-Evolui magically understands Observable and Promises and takes care of refreshing your UI when they emit new values.
-You can only care about where the data should be displayed.
+## Features
+
+* **Async** — evolui magically understands `Observables` and `Promises`. Just put them where they need to be displayed and, when they update, your UI will be refreshed for you.
+* **Virtual DOM** — evolui has a fast virtualDOM diffing algorithm and do the less work possible by only updating the closest node from the values that changed.
+* **Components** — You can build large applications by splitting its complexity inside encapsulated and predictable components.
+* **Tiny** — The whole library is only `4kB` gziped.
 
 ## Install
 
@@ -19,6 +23,8 @@ npm install evolui rxjs
 * Animated Pinterest Like Grid [Demo](https://wqyl0xmo47.codesandbox.io/) — [see code](https://codesandbox.io/s/wqyl0xmo47)
 
 **To jump to the code, visite the [`example`](https://github.com/gvergnaud/evolui/tree/master/example) folder.**
+
+## Getting Started
 
 ### Promises
 
@@ -100,7 +106,8 @@ Evolui lets you organize your code in components.
 Components are defined as a simple function of `Observable Props -> Observable VirtualDOM`:
 
 ```js
-import html, { createState, render } from 'evolui'
+import html, { render } from 'evolui'
+import { createState } from 'evolui/extra'
 import { map } from 'rxjs/operators'
 
 const Button = props$ =>
@@ -157,34 +164,46 @@ render(
 )
 ```
 
-## Animations
+## Extra
 
-Evolui exports a **spring** animation helper called ease.
+### Animations
+
+`evolui/extra` exports a **spring** animation helper called `ease`.
 
 ```typescript
-ease: (stiffness: number, damping: number) => number => Observable<number>
+ease: (stiffness: number, damping: number, id: string?) => Observable<number> => Observable<number>
 ```
 
-You just have to pipe any of your observables to `switchMap(ease(<stiffness>, <damping>))` to make it animated.
+You just have to pipe any of your observables to `ease(<stiffness>, <damping>)` to make it animated.
+
+If you are interested in using this feature separately, check out [`rx-ease`](https://github.com/gvergnaud/rx-ease)
 
 ```js
-import html, { render, ease } from 'evolui'
+import html, { render } from 'evolui'
+import { ease } from 'evolui/extra'
 import { fromEvent } from 'rxjs'
-import { switchMap, map, startWith } from 'rxjs/operators'
+import { map, startWith } from 'rxjs/operators'
 
-const position$ = fromEvent(window, 'click').pipe(
+const stiffness = 120
+const damping = 20
+
+const style$ = fromEvent(window, 'click').pipe(
   map(() => ({ x: e.clientX, y: e.clientY })),
-  startWith({ x: 0, y: 0 })
+  startWith({ x: 0, y: 0 }),
+  ease({
+    x: [stiffness, damping],
+    y: [stiffness, damping],
+  }),
+  map({ x, y }) => ({
+    transform: `translate(${x}px,${y}px)`
+  })
 )
 
 render(
   html`
     <div
       class="circle"
-      style="transform: translate(
-        ${position$.pipe(map(p => p.x), switchMap(ease(120, 18)))}px,
-        ${position$.pipe(map(p => p.y), switchMap(ease(120, 18)))}px
-      );"
+      style="${style$}"
     />
   `,
   document.querySelector('#mount')
@@ -192,6 +211,25 @@ render(
 ```
 
 ![animation demo](https://raw.githubusercontent.com/gvergnaud/evolui/c445de8161c151c24d84d0ad61af0a6185f0d62d/dot-animation.gif)
+
+For single values, you can pass the `stiffness` and `damping` directly
+
+```js
+import html, { render } from 'evolui'
+import { ease } from 'evolui/extra'
+import { interval } from 'rxjs'
+import { map } from 'rxjs/operators'
+
+render(
+  html`
+    <div style="width: ${interval(1000).pipe(
+      map(i => i * 50),
+      ease(120, 20)
+    )}px" />
+  `,
+  document.querySelector('#mount')
+)
+```
 
 ## API
 
@@ -227,12 +265,11 @@ render(html`<${App} />`, document.querySelector('#mount'))
 #### ease :: (Number, Number) -> Observable Number -> Observable Number
 
 ```js
-import { ease } from 'evolui'
+import { ease } from 'evolui/extra'
 import { interval } from 'rxjs'
-import { switchMap } from 'rxjs/operators'
 
 interval(1000).pipe(
-  switchMap(ease(120, 20)),
+  ease(120, 20),
   subscribe(x => console.log(x)) // every values will be interpolated
 )
 ```
@@ -245,7 +282,8 @@ Each key on your initial state will be transformed into a stream, with a special
 `set` can take either a value or a mapper function.
 
 ```js
-import html, { createState, render } from 'evolui'
+import html, { render } from 'evolui'
+import { createState } from 'evolui/extra'
 
 const state = createState({ count: 0 })
 
@@ -270,7 +308,7 @@ render(
 #### all :: [Observable a] -> Observable [a]
 
 ```js
-import { all } from 'evolui'
+import { all } from 'evolui/extra'
 
 const z$ = all([x$, y$]).map(([x, y]) => x + y)
 ```

@@ -1,6 +1,7 @@
-import html, { ease, createState, all } from 'evolui'
+import html from 'evolui'
+import { ease, createState, all } from 'evolui/extra'
 import { of, fromEvent } from 'rxjs'
-import { map, startWith, shareReplay, switchMap } from 'rxjs/operators'
+import { map, startWith, shareReplay } from 'rxjs/operators'
 
 import Select from './../../Select'
 import ModelCard from './ModelCard'
@@ -106,17 +107,13 @@ const Grid = props$ => {
                     html`
                       <${ModelCard}
                         model=${model}
-                        x=${dimension.x$.pipe(
-                          switchMap(ease(150, 18, model.uid + 'x'))
-                        )}
-                        y=${dimension.y$.pipe(
-                          switchMap(ease(120, 25, model.uid + 'y'))
-                        )}
+                        x=${dimension.x$.pipe(ease(150, 18, model.uid + 'x'))}
+                        y=${dimension.y$.pipe(ease(120, 25, model.uid + 'y'))}
                         height=${dimension.height$.pipe(
-                          switchMap(ease(170, 20, model.uid + 'height'))
+                          ease(170, 20, model.uid + 'height')
                         )}
                         width=${dimension.width$.pipe(
-                          switchMap(ease(170, 20, model.uid + 'width'))
+                          ease(170, 20, model.uid + 'width')
                         )}
                       />
                     `
