@@ -1,8 +1,18 @@
-import { Observable, Subject, of, from, combineLatest } from 'rxjs'
-import { map, filter, startWith, scan, sample } from 'rxjs/operators'
+import { Observable, BehaviorSubject, of, from, combineLatest } from 'rxjs'
+import { map, filter, startWith, sample, share } from 'rxjs/operators'
 import { curry } from './functions'
 
-export { Subject, Observable, of, from, map, filter, startWith, scan, sample }
+export {
+  Observable,
+  BehaviorSubject,
+  of,
+  from,
+  map,
+  filter,
+  startWith,
+  sample,
+  share
+}
 
 export const isPromise = p => p && typeof p.then === 'function'
 
@@ -47,45 +57,6 @@ export const switchMap = curry((switchMapper, stream) => {
 
 export const all = obs =>
   obs.length ? combineLatest(...obs, (...xs) => xs) : of([])
-
-export const shareReplay = curry((count, stream) => {
-  let observers = []
-  let subscription
-  let lastValues = []
-
-  const subscribe = () =>
-    stream.subscribe({
-      complete: () => observers.forEach(o => o.complete()),
-      error: e => observers.forEach(o => o.error(e)),
-      next: x => {
-        observers.forEach(o => o.next(x))
-        lastValues = lastValues
-          .concat(x)
-          .slice(Math.max(0, lastValues.length - count + 1))
-      }
-    })
-
-  return new Observable(observer => {
-    observers.push(observer)
-    if (observers.length === 1) {
-      subscription = subscribe()
-    }
-
-    lastValues.map(x => observer.next(x))
-
-    return {
-      unsubscribe: () => {
-        observers = observers.filter(o => o !== observer)
-        if (observer.length === 0) {
-          subscription.unsubscribe()
-          lastValues = []
-        }
-      }
-    }
-  })
-})
-
-export const share = shareReplay(0)
 
 export const blockComplete = () => stream =>
   new Observable(observer =>

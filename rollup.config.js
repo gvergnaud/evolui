@@ -2,6 +2,7 @@ import babel from 'rollup-plugin-babel'
 import nodeResolve from 'rollup-plugin-node-resolve'
 import commonjs from 'rollup-plugin-commonjs'
 import uglify from 'rollup-plugin-uglify'
+import autoExternal from 'rollup-plugin-auto-external'
 
 const createConfig = (input, output, additionnalPlugins = []) => ({
   input,
@@ -19,12 +20,13 @@ const createConfig = (input, output, additionnalPlugins = []) => ({
     babel({
       exclude: 'node_modules/**'
     }),
+    autoExternal(),
     ...additionnalPlugins
-  ],
-  external: ['vdom-tag', 'rxjs', 'rxjs/operators']
+  ]
 })
 
 export default [
   createConfig('src/index.js', 'lib/evolui.js'),
-  createConfig('src/index.js', 'lib/evolui.min.js', [uglify()])
+  createConfig('src/index.js', 'lib/evolui.min.js', [uglify()]),
+  createConfig('src/extra/index.js', 'extra.js')
 ]

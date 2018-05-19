@@ -37,7 +37,7 @@ export const flatten = variable =>
         ? switchMap(flatten, from(variable))
         : toObservable(variable)
 
-export const sharedRaf = share(raf)
+export const sharedRaf = share()(raf)
 
 // createReactiveTag
 //  :: ([String] -> ...[Variable a] -> b)

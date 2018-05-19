@@ -1,12 +1,12 @@
-import { Subject, sample, startWith, shareReplay } from '../utils/observables'
+import { BehaviorSubject, sample } from '../utils/observables'
 import { flatten, sharedRaf } from '../core'
 import VPatch from './VPatch'
 
 function createPropsStream(props) {
-  const sub = new Subject()
+  const sub = new BehaviorSubject(props)
   return {
     next: props => sub.next(props),
-    stream: sub.pipe(startWith(props), shareReplay(1))
+    stream: sub
   }
 }
 
