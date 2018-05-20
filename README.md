@@ -7,7 +7,7 @@ A tiny reactive user interface library.
 * **Async** — evolui magically understands `Observables` and `Promises`. Just put them where they need to be displayed and, when they update, your UI will be refreshed for you.
 * **Virtual DOM** — evolui has a fast virtualDOM diffing algorithm and do the less work possible by only updating the closest node from the values that changed.
 * **Components** — You can build large applications by splitting its complexity inside encapsulated and predictable components.
-* **Tiny** — The whole library is only `4kB` gziped.
+* **Tiny** — The API surface is very small and the whole library is only `4kB` gziped.
 
 ## Install
 
