@@ -12,9 +12,6 @@ function createPropsStream(props) {
 
 export default class Component {
   constructor({ name, untouchedAttributes, key = '' }) {
-    if (typeof name !== 'function')
-      throw new TypeError('evolui Components must be functions')
-
     this.name = name
     this.untouchedAttributes = untouchedAttributes
     this.key = key
@@ -22,7 +19,7 @@ export default class Component {
 
   createElement(isSvg, patch) {
     let node = isSvg
-      ? document.createElementNS('g')
+      ? document.createElementNS('http://www.w3.org/2000/svg', 'g')
       : document.createElement('div')
 
     this.state = {}

@@ -1,6 +1,6 @@
 {
   "name": "evolui",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "description": "Observable powered templates for asynchronous UIs",
   "main": "lib/evolui.js",
   "scripts": {

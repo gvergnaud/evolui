@@ -3,7 +3,7 @@ import VPatch from './VPatch'
 
 // render :: Observable VirtualDOM -> DOMElement -> Promise Error ()
 const render = (component, element) => {
-  let rootNode
+  let rootNode = element.firstChild
   let previousTree
 
   return component.subscribe({
