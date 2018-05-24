@@ -1,6 +1,13 @@
-# evolui
+<h1 align="center">evolui</h1>
 
+<p align="center">
 A tiny reactive user interface library.
+</p>
+
+<p align="center">
+<a href="https://www.npmjs.com/package/evolui"><img src="https://circleci.com/gh/gvergnaud/evolui.svg?style=shield&circle-token=73b842b0d34ac5c5cb64044cd26fc3bfb408e836" alt="CircleCI status" height="18"></a>
+<a href="https://badge.fury.io/js/evolui"><img src="https://badge.fury.io/js/evolui.svg" alt="npm version" height="18"></a>
+</p>
 
 ## Features
 
