@@ -1,11 +1,10 @@
 import html from 'evolui'
 import { fromEvent } from 'rxjs'
-import { map, startWith, share } from 'rxjs/operators'
+import { map, share } from 'rxjs/operators'
 
 const MouseTracker = () => {
   const mouse = fromEvent(window, 'mousemove').pipe(
     map(e => ({ x: e.clientX, y: e.clientY })),
-    startWith({ x: 0, y: 0 }),
     share()
   )
 

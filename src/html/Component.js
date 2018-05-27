@@ -15,6 +15,7 @@ export default class Component {
     if (typeof name !== 'function')
       throw new TypeError('evolui Components must be functions')
 
+    this.type = 'Component'
     this.name = name
     this.untouchedAttributes = untouchedAttributes
     this.key = key

@@ -1,5 +1,6 @@
 export default class VText {
   constructor({ text }) {
+    this.type = 'VText'
     this.text = text
   }
 

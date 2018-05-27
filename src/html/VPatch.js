@@ -1,5 +1,6 @@
 export default class VPatch {
   constructor(vTree) {
+    this.type = 'VPatch'
     this.vTree = vTree
   }
 

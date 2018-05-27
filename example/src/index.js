@@ -1,6 +1,7 @@
-import html, { render } from 'evolui'
-import { createState } from 'evolui/extra'
-import { map } from 'rxjs/operators'
+import html, { render, h, VNode, VText, VPatch, Component } from 'evolui'
+import { createState, flip } from 'evolui/extra'
+import { fromEvent } from 'rxjs'
+import { map, startWith } from 'rxjs/operators'
 
 import Select from './components/Select'
 import PinterestLikeGrid from './components/animations/PinterestLikeGrid'
@@ -15,6 +16,80 @@ import MouseTracker from './components/MouseTracker'
 import HttpRequest from './components/HttpRequest'
 
 import './index.css'
+
+const log = (x, label = '') => (console.log(label, x), x)
+
+const constructs = {
+  VNode,
+  VText,
+  VPatch,
+  Component
+}
+
+const iString = x => typeof x === 'string'
+
+const applyH = h => args => {
+  return !args
+    ? null
+    : iString(args)
+      ? args
+      : h(
+          args[0],
+          args[1],
+          iString(args[2]) ? [args[2]] : !args[2] ? [] : args[2].map(applyH(h))
+        )
+}
+
+const mouseX = fromEvent(window, 'mousemove').pipe(
+  map(e => e.clientX / window.innerWidth)
+)
+
+const hh = (a, b, c) => [a, b, c]
+
+const WeirdComponent = state =>
+  flip([
+    'div',
+    {},
+    [
+      [
+        'div',
+        {
+          style: {
+            backgroundColor: mouseX.pipe(
+              map(opacity => `rgba(50, 154, 29, ${opacity})`)
+            )
+          }
+        },
+        [['div', {}, ['test']]]
+      ],
+      ['p', {}, ['Coucou']],
+      [
+        'p',
+        {},
+        [state.selectedExample, state.selectedExample, state.selectedExample]
+      ]
+    ]
+  ]).pipe(map(applyH(h)))
+
+// const WeirdComponent = state =>
+//   flip(
+//     <div>
+//       <div
+//         style={{
+//           backgroundColor: mouseX.pipe(
+//             map(opacity => `rgba(50, 154, 29, ${opacity})`)
+//           )
+//         }}
+//       >
+//         <div>test</div>
+//       </div>
+//       <p>
+//         {state.selectedExample}
+//         {state.selectedExample}
+//         {state.selectedExample}
+//       </p>
+//     </div>
+//   ).pipe(map(log), map(applyH(h)))
 
 const examples = [
   { title: 'ComplexAnimation', value: 'ComplexAnimation' },
@@ -57,6 +132,8 @@ const App = () => {
           options=${examples}
         />
       </p>
+
+      ${WeirdComponent(state)}
 
       ${state.selectedExample.pipe(
         map(name => components[name]),

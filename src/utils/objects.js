@@ -14,3 +14,5 @@ export const pick = keys => pickBy((_, key) => keys.includes(key))
 export const mapValues = curry((f, obj) =>
   Object.keys(obj).reduce((acc, k) => ({ ...acc, [k]: f(obj[k], k) }), {})
 )
+
+export const isObject = x => typeof x === 'object' && x !== null
