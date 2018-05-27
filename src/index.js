@@ -1,5 +1,5 @@
-import { html, render } from './html'
+import { html, render, h, VNode, VText, VPatch, Component } from './html'
 import { text } from './text'
 
 export default html
-export { text, render }
+export { text, render, h, VNode, VText, VPatch, Component }

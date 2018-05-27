@@ -22,6 +22,7 @@ export default class VNode {
     children = {},
     key = ''
   }) {
+    this.type = 'VNode'
     this.name = name
     this.attrs = attrs
     this.lifecycle = lifecycle

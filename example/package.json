@@ -22,6 +22,7 @@
     "sagui": "^10.0.1"
   },
   "dependencies": {
+    "babel-plugin-transform-react-jsx": "^6.24.1",
     "evolui": "^1.6.4",
     "immutable-deep-update": "^1.0.1",
     "rxjs": "^6.1.0",

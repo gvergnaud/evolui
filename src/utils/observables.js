@@ -1,6 +1,7 @@
 import { Observable, BehaviorSubject, of, from, combineLatest } from 'rxjs'
 import { map, filter, startWith, sample, share } from 'rxjs/operators'
-import { curry } from './functions'
+import { compose, curry } from './functions'
+import { isObject, mapValues } from './objects'
 
 export {
   Observable,
@@ -58,6 +59,17 @@ export const switchMap = curry((switchMapper, stream) => {
 export const all = obs =>
   obs.length ? combineLatest(...obs, (...xs) => xs) : of([])
 
+const combineLatestObject = obj => {
+  const keys = Object.keys(obj)
+  return keys.length
+    ? combineLatest(
+        ...keys.map(k => obj[k].pipe(map(v => [k, v]))),
+        (...entries) =>
+          entries.reduce((acc, [k, v]) => ({ ...acc, [k]: v }), {})
+      )
+    : of(obj)
+}
+
 export const blockComplete = () => stream =>
   new Observable(observer =>
     stream.subscribe({
@@ -85,3 +97,27 @@ export const raf = new Observable(observer => {
     }
   }
 })
+
+// const debug = (ds, obs) => {
+//   const name = `flip(${ds})`
+//   obs.subscribe({
+//     next: x => console.log('next', name, ds, x),
+//     complete: () => console.log('complete', name, ds),
+//     error: x => console.log('error', name, ds, x)
+//   })
+//
+//   return obs
+// }
+
+export const flip = ds =>
+  isObservable(ds)
+    ? switchMap(flip)(ds)
+    : isPromise(ds)
+      ? switchMap(flip)(from(ds))
+      : Array.isArray(ds)
+        ? all(ds.map(compose(startWith(undefined), flip)))
+        : isObject(ds)
+          ? combineLatestObject(
+              mapValues(compose(startWith(undefined), flip), ds)
+            )
+          : toObservable(ds)

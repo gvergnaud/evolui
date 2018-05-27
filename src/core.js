@@ -28,7 +28,6 @@ const hasContent = xs => !xs.length || !xs.every(isEmpty)
 export const flatten = variable =>
   Array.isArray(variable)
     ? all(variable.map(compose(startWith(''), flatten))).pipe(
-        blockComplete(),
         filter(hasContent)
       )
     : isObservable(variable)
@@ -46,6 +45,7 @@ export const sharedRaf = share()(raf)
 //  -> Observable b
 export const createReactiveTag = tagFunction => (strings, ...variables) =>
   flatten(variables).pipe(
+    blockComplete(),
     startWith([]),
     sample(sharedRaf),
     map(variables => tagFunction(strings, ...variables))

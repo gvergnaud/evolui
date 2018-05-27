@@ -12,6 +12,7 @@ function createPropsStream(props) {
 
 export default class Component {
   constructor({ name, untouchedAttributes, key = '' }) {
+    this.type = 'Component'
     this.name = name
     this.untouchedAttributes = untouchedAttributes
     this.key = key
