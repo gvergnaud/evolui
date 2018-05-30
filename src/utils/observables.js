@@ -109,22 +109,34 @@ export const raf = new Observable(observer => {
 //   return obs
 // }
 
+const defaultWith = (value, delayMs = 32) => stream =>
+  new Observable(observer => {
+    const timeout = setTimeout(() => observer.next(value), delayMs)
+    return stream.subscribe({
+      next: x => {
+        clearTimeout(timeout)
+        observer.next(x)
+      },
+      complete: () => {
+        clearTimeout(timeout)
+        observer.complete()
+      },
+      error: e => {
+        clearTimeout(timeout)
+        observer.error(e)
+      }
+    })
+  })
+
 export const flip = ds =>
   isObservable(ds)
     ? switchMap(flip)(ds)
     : isPromise(ds)
       ? switchMap(flip)(from(ds))
       : Array.isArray(ds)
-        ? all(ds.map(compose(startWith(undefined), flip))).pipe(
-            filter(xs => !xs.length || xs.some(x => x !== undefined))
-          )
+        ? all(ds.map(compose(defaultWith(undefined), flip)))
         : isObject(ds)
           ? combineLatestObject(
-              mapValues(compose(startWith(undefined), flip), ds)
-            ).pipe(
-              filter(obj => {
-                const values = Object.values(obj)
-                return !values.length || values.some(x => x !== undefined)
-              })
+              mapValues(compose(defaultWith(undefined), flip), ds)
             )
           : toObservable(ds)
