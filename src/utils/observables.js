@@ -115,9 +115,16 @@ export const flip = ds =>
     : isPromise(ds)
       ? switchMap(flip)(from(ds))
       : Array.isArray(ds)
-        ? all(ds.map(compose(startWith(undefined), flip)))
+        ? all(ds.map(compose(startWith(undefined), flip))).pipe(
+            filter(xs => !xs.length || xs.some(x => x !== undefined))
+          )
         : isObject(ds)
           ? combineLatestObject(
               mapValues(compose(startWith(undefined), flip), ds)
+            ).pipe(
+              filter(obj => {
+                const values = Object.values(obj)
+                return !values.length || values.some(x => x !== undefined)
+              })
             )
           : toObservable(ds)

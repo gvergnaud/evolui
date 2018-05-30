@@ -1,10 +1,9 @@
 import { createDefaultLifecycle } from '../utils/misc'
-
-import VNode from './VNode'
-import VText from './VText'
+import { mount, createElement, updateElement, removeElement } from './lifecycle'
 
 function createVTree(node) {
-  return new VNode({
+  return {
+    type: 'VNode',
     name: node.nodeName.toLowerCase(),
     lifecycle: createDefaultLifecycle(),
     events: {},
@@ -14,10 +13,10 @@ function createVTree(node) {
       node.childNodes,
       node =>
         node.nodeType === 3 // Node.TEXT_NODE
-          ? new VText({ text: node.nodeValue })
+          ? { type: 'VText', text: node.nodeValue }
           : createVTree(node)
     )
-  })
+  }
 }
 
 export default function patch(
@@ -26,20 +25,17 @@ export default function patch(
   vTree,
   isSvg
 ) {
-  if (
-    vTree.constructor !== previousTree.constructor ||
-    vTree.key !== previousTree.key
-  ) {
-    previousTree.removeElement(node)
-    const newNode = vTree.createElement(isSvg, patch)
+  if (vTree.type !== previousTree.type || vTree.key !== previousTree.key) {
+    removeElement(previousTree, node)
+    const newNode = createElement(vTree, isSvg, patch)
     node.parentNode.replaceChild(newNode, node)
-    vTree.mount(newNode)
+    mount(vTree, newNode, isSvg)
     return newNode
   } else {
-    const newNode = vTree.updateElement(node, previousTree, isSvg, patch)
+    const newNode = updateElement(vTree, node, previousTree, isSvg, patch)
     if (newNode) {
       node.parentNode.replaceChild(newNode, node)
-      vTree.mount(newNode, isSvg)
+      mount(vTree, newNode, isSvg)
       return newNode
     } else {
       return node
