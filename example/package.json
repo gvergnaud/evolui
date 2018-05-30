@@ -4,28 +4,28 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "sagui build",
-    "dist": "sagui dist",
-    "format": "sagui format",
-    "start": "sagui develop --port 3000",
-    "test": "sagui test",
-    "test:lint": "sagui test:lint",
-    "test:typecheck": "sagui test:typecheck",
-    "test:unit": "sagui test:unit --coverage",
-    "test:unit:watch": "sagui test:unit --watch"
+    "build": "parcel src/index.html",
+    "start": "parcel src/index.html -p 3000"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "prettier": "^1.11.1",
-    "sagui": "^10.0.1"
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.4",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-plugin-transform-react-jsx": "^6.24.1",
+    "babel-preset-env": "^1.7.0",
+    "parcel-bundler": "^1.8.1",
+    "prettier": "^1.11.1"
   },
   "dependencies": {
-    "babel-plugin-transform-react-jsx": "^6.24.1",
     "evolui": "^1.6.4",
     "immutable-deep-update": "^1.0.1",
     "rxjs": "^6.1.0",
     "socket.io-client": "^2.0.4"
+  },
+  "alias": {
+    "evolui": "../src"
   }
 }
