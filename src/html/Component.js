@@ -1,6 +1,5 @@
-import { BehaviorSubject, sample } from '../utils/observables'
-import { flatten, sharedRaf } from '../core'
-import VPatch from './VPatch'
+import { BehaviorSubject } from '../utils/observables'
+import { createElement, removeElement } from './lifecycle'
 
 function createPropsStream(props) {
   const sub = new BehaviorSubject(props)
@@ -18,7 +17,7 @@ export default class Component {
     this.key = key
   }
 
-  createElement(isSvg, patch) {
+  createElement(isSvg) {
     let node = isSvg
       ? document.createElementNS('http://www.w3.org/2000/svg', 'g')
       : document.createElement('div')
@@ -32,19 +31,7 @@ export default class Component {
     if (!vdomStream)
       throw new Error(`Component ${this.name.name} must return a stream!`)
 
-    this.state.subscription = vdomStream
-      .pipe(flatten, sample(sharedRaf))
-      .subscribe({
-        next: newChildTree => {
-          if (newChildTree instanceof VPatch) {
-            this.state.childTree = newChildTree.vTree
-          } else {
-            node = patch(node, this.state.childTree, newChildTree, isSvg)
-            this.state.childTree = newChildTree
-          }
-        },
-        error: e => console.error(e)
-      })
+    this.state.subscription = render(vdomStream, node)
 
     return node
   }
@@ -53,8 +40,8 @@ export default class Component {
     this.state = previousComponent.state
 
     if (previousComponent.name !== this.name) {
-      previousComponent.removeElement(node)
-      return this.createElement(isSvg, patch)
+      removeElement(previousComponent, node)
+      return createElement(this, isSvg, patch)
     } else {
       this.state.props.next(this.untouchedAttributes)
     }
@@ -62,7 +49,7 @@ export default class Component {
 
   removeElement(node) {
     this.state.subscription.unsubscribe()
-    if (this.state.childTree) this.state.childTree.removeElement(node)
+    if (this.state.childTree) removeElement(this.state.childTree, node)
   }
 
   mount() {}

@@ -1,7 +1,6 @@
 import { raf, share, sample, flip, map } from '../utils/observables'
 import h from './h'
 import patch from './patch'
-import VPatch from './VPatch'
 import { createElement } from './lifecycle'
 
 const sharedRaf = share()(raf)
@@ -34,14 +33,14 @@ const render = (component, element) => {
 
   return toStream(component).subscribe({
     next: vTree => {
-      if (vTree instanceof VPatch) {
+      if (vTree.type === 'VPatch') {
         previousTree = vTree.vTree
       } else {
         if (!rootNode) {
           rootNode = createElement(vTree, false, patch)
           element.appendChild(rootNode)
         } else {
-          patch(rootNode, previousTree, vTree)
+          rootNode = patch(rootNode, previousTree, vTree)
         }
         previousTree = vTree
       }

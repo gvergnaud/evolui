@@ -1,104 +1,67 @@
 import html, { render } from 'evolui'
-import { createState, flip } from 'evolui/extra'
-import { fromEvent, Observable } from 'rxjs'
+import { ease } from 'evolui/extra'
+import { merge, fromEvent } from 'rxjs'
 import { map, startWith } from 'rxjs/operators'
 
-import Select from './components/Select'
-import PinterestLikeGrid from './components/animations/PinterestLikeGrid'
-import ComplexAnimation from './components/animations/ComplexAnimation'
-import SimpleAnimation from './components/animations/SimpleAnimation'
-import SvgAnimation from './components/animations/SvgAnimation'
-import Spreadsheet from './components/Spreadsheet'
-import Ticker from './components/Ticker'
-import TodoList from './components/TodoList'
-import Chat from './components/Chat'
-import MouseTracker from './components/MouseTracker'
-import HttpRequest from './components/HttpRequest'
-
-import './index.css'
-
-const mouseX = fromEvent(window, 'mousemove').pipe(
-  map(e => e.clientX / window.innerWidth)
-)
-
-const log = (x, label = 'log') => (console.log(label, x), x)
 const h = (name, attrs, ...children) => ({
   name,
   attrs: attrs || {},
-  children
+  children: children.reduce((acc, x) => acc.concat(x), [])
 })
 
-const WeirdComponent = state =>
-  h('div', {}, [
-    h('div', {}, [
-      h(
-        'div',
-        {
-          style: {
-            backgroundColor: mouseX.pipe(
-              map(opacity => `rgba(50, 154, 29, ${opacity})`)
-            )
-          }
-        },
-        [h('div', {}, ['test']), h('p', {}, ['Hello'])]
-      ),
-      h('p', {}, ['Coucou']),
-      h('p', {}, [
-        state.selectedExample,
-        state.selectedExample,
-        state.selectedExample
-      ])
-    ])
-  ])
+const toPosition = e =>
+  (e.position = e.type.match(/^touch/)
+    ? { x: e.touches[0].clientX, y: e.touches[0].clientY }
+    : { x: e.clientX, y: e.clientY })
 
-const WeirdComponentJSX = state => (
-  <div>
+const Circle = ({
+  color = 'purple',
+  radius = 25,
+  stiffness = 120,
+  damping = 20
+} = {}) => {
+  const position$ = merge(
+    fromEvent(window, 'mousemove').pipe(map(toPosition)),
+    fromEvent(window, 'touchmove').pipe(map(toPosition))
+  ).pipe(startWith({ x: 0, y: 0 }))
+
+  return (
     <div
-      style={{
-        backgroundColor: mouseX.pipe(
-          map(opacity => `rgba(50, 154, 29, ${opacity})`)
-        )
-      }}
-    >
-      <div>test</div>
-      <p>Hello</p>
-    </div>
-    <p>
-      {' '}
-      attends, quoi ??
-      {state.selectedExample} +
-      {state.selectedExample} +
-      {state.selectedExample}
-    </p>
-  </div>
-)
-
-const examples = [
-  { title: 'ComplexAnimation', value: 'ComplexAnimation' },
-  { title: 'Spreadsheet', value: 'Spreadsheet' },
-  { title: 'TodoList', value: 'TodoList' },
-  { title: 'SimpleAnimation', value: 'SimpleAnimation' },
-  { title: 'SvgAnimation', value: 'SvgAnimation' },
-  { title: 'PinterestLikeGrid', value: 'PinterestLikeGrid' },
-  { title: 'Chat', value: 'Chat' },
-  { title: 'MouseTracker', value: 'MouseTracker' },
-  { title: 'HttpRequest', value: 'HttpRequest' },
-  { title: 'Ticker', value: 'Ticker' }
-]
-
-const components = {
-  PinterestLikeGrid,
-  ComplexAnimation,
-  SimpleAnimation,
-  SvgAnimation,
-  Spreadsheet,
-  Ticker,
-  TodoList,
-  Chat,
-  MouseTracker,
-  HttpRequest
+      style={position$.pipe(
+        ease({
+          x: [stiffness, damping],
+          y: [stiffness, damping]
+        }),
+        map(({ x, y }) => ({
+          position: 'absolute',
+          left: '0',
+          top: '0',
+          width: radius * 2 + 'px',
+          height: radius * 2 + 'px',
+          background: color,
+          borderRadius: '100%',
+          zIndex: -1,
+          transform: `translate(${x - radius}px, ${y - radius}px)`
+        }))
+      )}
+    />
+  )
 }
 
-const state = createState({ selectedExample: 'ComplexAnimation' })
-
-render(WeirdComponentJSX(state), document.querySelector('#root'))
+render(
+  <div>
+    {Array(100)
+      .fill(0)
+      .map((_, i) => (
+        <div>
+          {Circle({
+            stiffness: 100 + i * 10,
+            damping: 16,
+            radius: 35,
+            color: `rgba(5, 241, 163, ${(i + 1) / 10})`
+          })}
+        </div>
+      ))}
+  </div>,
+  document.querySelector('#root')
+)

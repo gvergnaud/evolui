@@ -1,7 +1,7 @@
 import { isEmpty } from '../utils/misc'
 import { createElement, mount, removeElement } from './lifecycle'
 
-function updateStyle(node, previousStyle = {}, nextStyle = {}) {
+const updateStyle = (node, previousStyle = {}, nextStyle = {}) => {
   for (const key in { ...previousStyle, ...nextStyle }) {
     const style = !nextStyle || !nextStyle[key] ? '' : nextStyle[key]
     if (nextStyle[key] === previousStyle[key]) {
