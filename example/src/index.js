@@ -1,13 +1,7 @@
-import html, { render } from 'evolui'
+import html, { render, h } from 'evolui'
 import { ease } from 'evolui/extra'
 import { merge, fromEvent } from 'rxjs'
 import { map, startWith } from 'rxjs/operators'
-
-const h = (name, attrs, ...children) => ({
-  name,
-  attrs: attrs || {},
-  children: children.reduce((acc, x) => acc.concat(x), [])
-})
 
 const toPosition = e =>
   (e.position = e.type.match(/^touch/)

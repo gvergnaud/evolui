@@ -1,30 +1,10 @@
-import { raf, share, sample, flip, map } from '../utils/observables'
-import h from './h'
+import { raf, share, sample, flip } from '../utils/observables'
 import patch from './patch'
 import { createElement } from './lifecycle'
 
 const sharedRaf = share()(raf)
 
-const iString = x => typeof x === 'string'
-
-const applyH = h => args => {
-  return !args
-    ? null
-    : iString(args)
-      ? args
-      : h(
-          args.name,
-          args.attrs || {},
-          iString(args.children)
-            ? [args.children]
-            : !args.children
-              ? []
-              : args.children.map(applyH(h))
-        )
-}
-
-const toStream = component =>
-  flip(component).pipe(map(applyH(h)), sample(sharedRaf))
+const toStream = component => flip(component).pipe(sample(sharedRaf))
 
 // render :: Observable VirtualDOM -> DOMElement -> Promise Error ()
 const render = (component, element) => {

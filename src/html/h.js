@@ -25,7 +25,10 @@ const formatChildren = flatMap(
           : [{ type: 'VText', text: `${c}` }]
 )
 
-export default function h(name, attributes = {}, children = []) {
+export default function h(name, _attributes, ..._children) {
+  const attributes = _attributes || {}
+  const children = _children.reduce((acc, x) => acc.concat(x), [])
+
   if (typeof name === 'function') {
     return {
       type: 'Component',
