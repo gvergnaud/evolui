@@ -1,8 +1,3 @@
-import VNode from './VNode'
-import VText from './VText'
-import VPatch from './VPatch'
-import Component from './Component'
-
 import { flatMap } from '../utils/arrays'
 import { isEmpty, createDefaultLifecycle } from '../utils/misc'
 
@@ -21,19 +16,22 @@ const formatChildren = flatMap(
   c =>
     Array.isArray(c)
       ? formatChildren(c)
-      : [VNode, VText, VPatch, Component].some(C => c instanceof C)
-        ? [c]
-        : isEmpty(c)
-          ? []
-          : [new VText({ text: `${c}` })]
+      : isEmpty(c)
+        ? []
+        : ['VNode', 'VText', 'VPatch', 'Component'].some(
+            type => c.type === type
+          )
+          ? [c]
+          : [{ type: 'VText', text: `${c}` }]
 )
 
 export default function h(name, attributes = {}, children = []) {
   if (typeof name === 'function') {
-    return new Component({
+    return {
+      type: 'Component',
       name,
       untouchedAttributes: { ...attributes, children }
-    })
+    }
   }
 
   const { key, lifecycle, events, attrs } = Object.entries(attributes).reduce(
@@ -55,12 +53,13 @@ export default function h(name, attributes = {}, children = []) {
     { lifecycle: createDefaultLifecycle(), events: {}, attrs: {} }
   )
 
-  return new VNode({
+  return {
+    type: 'VNode',
     name,
     attrs,
     lifecycle,
     events,
     children: formatChildren(children),
     key
-  })
+  }
 }

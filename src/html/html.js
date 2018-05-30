@@ -30,7 +30,7 @@ const createRenderProcess = vdom$ =>
           observer.next(vTree)
         } else {
           domNode = patch(domNode, previousTree, vTree, isSvg)
-          observer.next(new VPatch(vTree))
+          observer.next(new VPatch({ vTree }))
         }
 
         previousTree = vTree

@@ -1,4 +1,5 @@
 import { isEmpty } from '../utils/misc'
+import { createElement, mount, removeElement } from './lifecycle'
 
 function updateStyle(node, previousStyle = {}, nextStyle = {}) {
   for (const key in { ...previousStyle, ...nextStyle }) {
@@ -9,6 +10,75 @@ function updateStyle(node, previousStyle = {}, nextStyle = {}) {
       node.style.setProperty(key, style)
     } else {
       node.style[key] = style
+    }
+  }
+}
+
+const updateEvents = (vTree, node, previousEvents) => {
+  for (const [eventName, handler] of Object.entries(vTree.events)) {
+    if (!previousEvents[eventName]) {
+      node.addEventListener(eventName, handler)
+    } else if (handler !== previousEvents[eventName]) {
+      node.removeEventListener(eventName, previousEvents[eventName])
+      node.addEventListener(eventName, handler)
+    }
+  }
+
+  const removedEventsEntries = Object.entries(previousEvents).filter(
+    ([key]) => !vTree.events[key]
+  )
+
+  for (const [eventName, handler] of removedEventsEntries) {
+    node.removeEventListener(eventName, handler)
+  }
+}
+
+const updateAttrs = (vTree, node, previousAttrs) => {
+  for (const attrName in { ...previousAttrs, ...vTree.attrs }) {
+    const attrValue = vTree.attrs[attrName]
+
+    if (attrValue === previousAttrs[attrName]) {
+      // no update needed
+    } else if (!isEmpty(attrValue)) {
+      if (attrName === 'style') {
+        updateStyle(node, previousAttrs.style, vTree.attrs.style)
+      } else if (attrName === 'value' && node.tagName === 'INPUT') {
+        node.value = attrValue
+      } else {
+        node.setAttribute(attrName, attrValue)
+      }
+    } else {
+      if (attrName === 'value' && node.tagName === 'INPUT') {
+        node.value = ''
+      } else {
+        node.removeAttribute(attrName)
+      }
+    }
+  }
+}
+
+const updateChildren = (vTree, node, previousChildren, isSvg, patch) => {
+  for (const index in vTree.children) {
+    const childTree = vTree.children[index]
+    const previousChildTree = previousChildren[index]
+    const previousChildNode = node.childNodes[index]
+
+    if (!previousChildNode) {
+      const childNode = createElement(childTree, isSvg, patch)
+      node.appendChild(childNode)
+      mount(childTree, childNode)
+    } else {
+      patch(previousChildNode, previousChildTree, childTree, isSvg)
+    }
+  }
+
+  for (const index in [].slice.call(node.childNodes, vTree.children.length)) {
+    const realIndex = parseInt(index) + vTree.children.length
+    const childTree = previousChildren[realIndex]
+    const childNode = node.childNodes[realIndex]
+    if (childNode) {
+      removeElement(childTree, childNode)
+      childNode.remove()
     }
   }
 }
@@ -36,21 +106,21 @@ export default class VNode {
       ? document.createElementNS('http://www.w3.org/2000/svg', this.name)
       : document.createElement(this.name)
 
-    this.updateEvents(node, {})
-    this.updateAttrs(node, {})
-    this.updateChildren(node, [], isSvg, patch)
+    updateEvents(this, node, {})
+    updateAttrs(this, node, {})
+    updateChildren(this, node, [], isSvg, patch)
 
     return node
   }
 
   updateElement(node, previousTree, isSvg, patch) {
     if (previousTree.name !== this.name) {
-      previousTree.removeElement(node)
-      return this.createElement(isSvg, patch)
+      removeElement(previousTree, node)
+      return createElement(this, isSvg, patch)
     } else {
-      this.updateEvents(node, previousTree.events)
-      this.updateAttrs(node, previousTree.attrs)
-      this.updateChildren(node, previousTree.children, isSvg, patch)
+      updateEvents(this, node, previousTree.events)
+      updateAttrs(this, node, previousTree.attrs)
+      updateChildren(this, node, previousTree.children, isSvg, patch)
 
       this.lifecycle.update(node)
     }
@@ -58,84 +128,15 @@ export default class VNode {
 
   removeElement(node) {
     this.children.map((child, index) =>
-      child.removeElement(node.childNodes[index])
+      removeElement(child, node.childNodes[index])
     )
 
     this.lifecycle.unmount(node)
   }
 
   mount(node) {
-    this.children.map(child => child.mount())
+    this.children.map(child => mount(child))
 
     this.lifecycle.mount(node)
-  }
-
-  updateEvents(node, previousEvents) {
-    for (const [eventName, handler] of Object.entries(this.events)) {
-      if (!previousEvents[eventName]) {
-        node.addEventListener(eventName, handler)
-      } else if (handler !== previousEvents[eventName]) {
-        node.removeEventListener(eventName, previousEvents[eventName])
-        node.addEventListener(eventName, handler)
-      }
-    }
-
-    const removedEventsEntries = Object.entries(previousEvents).filter(
-      ([key]) => !this.events[key]
-    )
-
-    for (const [eventName, handler] of removedEventsEntries) {
-      node.removeEventListener(eventName, handler)
-    }
-  }
-
-  updateAttrs(node, previousAttrs) {
-    for (const attrName in { ...previousAttrs, ...this.attrs }) {
-      const attrValue = this.attrs[attrName]
-
-      if (attrValue === previousAttrs[attrName]) {
-        // no update needed
-      } else if (!isEmpty(attrValue)) {
-        if (attrName === 'style') {
-          updateStyle(node, previousAttrs.style, this.attrs.style)
-        } else if (attrName === 'value' && node.tagName === 'INPUT') {
-          node.value = attrValue
-        } else {
-          node.setAttribute(attrName, attrValue)
-        }
-      } else {
-        if (attrName === 'value' && node.tagName === 'INPUT') {
-          node.value = ''
-        } else {
-          node.removeAttribute(attrName)
-        }
-      }
-    }
-  }
-
-  updateChildren(node, previousChildren, isSvg, patch) {
-    for (const index in this.children) {
-      const childTree = this.children[index]
-      const previousChildTree = previousChildren[index]
-      const previousChildNode = node.childNodes[index]
-
-      if (!previousChildNode) {
-        const childNode = childTree.createElement(isSvg, patch)
-        node.appendChild(childNode)
-        childTree.mount(childNode)
-      } else {
-        patch(previousChildNode, previousChildTree, childTree, isSvg)
-      }
-    }
-
-    for (const index in [].slice.call(node.childNodes, this.children.length)) {
-      const realIndex = parseInt(index) + this.children.length
-      const childTree = previousChildren[realIndex]
-      const childNode = node.childNodes[realIndex]
-      if (childNode) {
-        childTree.removeElement(childNode)
-        childNode.remove()
-      }
-    }
   }
 }

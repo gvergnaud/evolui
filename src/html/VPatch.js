@@ -1,22 +1,24 @@
+import { mount, updateElement, createElement, removeElement } from './lifecycle'
+
 export default class VPatch {
-  constructor(vTree) {
+  constructor({ vTree }) {
     this.type = 'VPatch'
     this.vTree = vTree
   }
 
   createElement(...args) {
-    return this.vTree.createElement(...args)
+    return createElement(this.vTree, ...args)
   }
 
   updateElement(...args) {
-    return this.vTree.updateElement(...args)
+    return updateElement(this.vTree, ...args)
   }
 
   removeElement(...args) {
-    return this.vTree.removeElement(...args)
+    return removeElement(this.vTree, ...args)
   }
 
   mount(...args) {
-    return this.vTree.mount(...args)
+    return mount(this.vTree, ...args)
   }
 }
