@@ -22,6 +22,7 @@ export const render = (
       } else {
         if (!rootNode) {
           rootNode = createElement(vTree, isSvg, patch)
+          element.innerHTML = ''
           element.appendChild(rootNode)
         } else {
           rootNode = patch(rootNode, previousTree, vTree, isSvg)
@@ -49,6 +50,18 @@ export class VText {
   removeElement() {}
 
   mount() {}
+}
+
+function isShallowEqual(obj1, obj2) {
+  for (var k1 in obj1) {
+    if (!(k1 in obj2) || obj1[k1] !== obj2[k1]) return false
+  }
+
+  for (var k2 in obj2) {
+    if (!(k2 in obj1) || obj1[k2] !== obj2[k2]) return false
+  }
+
+  return true
 }
 
 const updateStyle = (node, previousStyle = {}, nextStyle = {}) => {
@@ -259,7 +272,14 @@ export class Component {
       removeElement(previousComponent, node)
       return createElement(this, isSvg, patch)
     } else {
-      this.state.props.next(this.untouchedAttributes)
+      if (
+        !isShallowEqual(
+          previousComponent.untouchedAttributes,
+          this.untouchedAttributes
+        )
+      ) {
+        this.state.props.next(this.untouchedAttributes)
+      }
     }
   }
 
