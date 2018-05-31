@@ -1,10 +1,8 @@
 import createTag from 'vdom-tag'
 import { Observable } from '../utils/observables'
 import { createReactiveTag } from '../core'
-import patch from './patch'
+import patch, { VNode, VPatch } from './patch'
 import h from './h'
-import VNode from './VNode'
-import VPatch from './VPatch'
 
 const createRenderProcess = vdom$ =>
   new Observable(observer => {

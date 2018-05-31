@@ -1,19 +1,9 @@
 import { Observable, BehaviorSubject, of, from, combineLatest } from 'rxjs'
-import { map, filter, startWith, sample, share } from 'rxjs/operators'
+import { map, filter, startWith, share } from 'rxjs/operators'
 import { compose, curry } from './functions'
 import { isObject, mapValues } from './objects'
 
-export {
-  Observable,
-  BehaviorSubject,
-  of,
-  from,
-  map,
-  filter,
-  startWith,
-  sample,
-  share
-}
+export { Observable, BehaviorSubject, of, from, map, filter, startWith, share }
 
 export const isPromise = p => p && typeof p.then === 'function'
 
@@ -56,14 +46,16 @@ export const switchMap = curry((switchMapper, stream) => {
   })
 })
 
+// all :: [Observable a] -> Observable [a]
 export const all = obs =>
-  obs.length ? combineLatest(...obs, (...xs) => xs) : of([])
+  obs.length ? combineLatest(...obs.map(toObservable), (...xs) => xs) : of([])
 
-const combineLatestObject = obj => {
+// combineLatestObject :: Object (Observable a) -> Observable (Object a)
+export const combineLatestObject = obj => {
   const keys = Object.keys(obj)
   return keys.length
     ? combineLatest(
-        ...keys.map(k => obj[k].pipe(map(v => [k, v]))),
+        ...keys.map(k => toObservable(obj[k]).pipe(map(v => [k, v]))),
         (...entries) =>
           entries.reduce((acc, [k, v]) => ({ ...acc, [k]: v }), {})
       )
@@ -78,6 +70,38 @@ export const blockComplete = () => stream =>
       error: e => observer.error(e)
     })
   )
+
+export const sample = curry((sampleStream, stream) => {
+  const none = Symbol('None')
+  return new Observable(observer => {
+    let latestValue = none
+    const sub = stream.subscribe({
+      next: value => {
+        latestValue = value
+      },
+      complete: () => {},
+      error: e => observer.error(e)
+    })
+
+    const sampleSub = sampleStream.subscribe({
+      next: () => {
+        if (latestValue !== none) {
+          observer.next(latestValue)
+          latestValue = none
+        }
+      },
+      complete: () => observer.complete(),
+      error: e => observer.error(e)
+    })
+
+    return {
+      unsubscribe: () => {
+        sub.unsubscribe()
+        sampleSub.unsubscribe()
+      }
+    }
+  })
+})
 
 export const raf = new Observable(observer => {
   let isSubscribed = true
@@ -98,16 +122,16 @@ export const raf = new Observable(observer => {
   }
 })
 
-// const debug = (ds, obs) => {
-//   const name = `flip(${ds})`
-//   obs.subscribe({
-//     next: x => console.log('next', name, ds, x),
-//     complete: () => console.log('complete', name, ds),
-//     error: x => console.log('error', name, ds, x)
-//   })
-//
-//   return obs
-// }
+const applyIf = curry((predicate, f, v) => (predicate(v) ? f(v) : v))
+
+const ifObservable = applyIf(isObservable)
+
+const allIfObservable = applyIf(obs => obs.some(isObservable), all)
+
+const combineLatestObjectIfObservable = applyIf(
+  obj => Object.values(obj).some(isObservable),
+  combineLatestObject
+)
 
 const defaultWith = (value, delayMs = 32) => stream =>
   new Observable(observer => {
@@ -128,15 +152,22 @@ const defaultWith = (value, delayMs = 32) => stream =>
     })
   })
 
-export const flip = ds =>
+const _flip = ds =>
   isObservable(ds)
     ? switchMap(flip)(ds)
     : isPromise(ds)
       ? switchMap(flip)(from(ds))
       : Array.isArray(ds)
-        ? all(ds.map(compose(defaultWith(undefined), flip)))
+        ? allIfObservable(
+            ds.map(compose(ifObservable(defaultWith(undefined)), _flip))
+          )
         : isObject(ds)
-          ? combineLatestObject(
-              mapValues(compose(defaultWith(undefined), flip), ds)
+          ? combineLatestObjectIfObservable(
+              mapValues(
+                compose(ifObservable(defaultWith(undefined)), _flip),
+                ds
+              )
             )
-          : toObservable(ds)
+          : ds
+
+export const flip = ds => toObservable(_flip(ds))

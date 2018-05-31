@@ -66,12 +66,7 @@
         "null": "ignore"
       }
     ],
-    "no-use-before-define": [
-      2,
-      {
-        "functions": false
-      }
-    ],
+    "no-use-before-define": 0,
     "eol-last": 2,
     "new-cap": 0,
     "no-caller": 2,
