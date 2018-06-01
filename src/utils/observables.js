@@ -154,20 +154,22 @@ const defaultWith = (value, delayMs = 32) => stream =>
 
 const _flip = ds =>
   isObservable(ds)
-    ? switchMap(flip)(ds)
+    ? switchMap(compose(toObservable, _flip))(ds)
     : isPromise(ds)
-      ? switchMap(flip)(from(ds))
+      ? switchMap(compose(toObservable, _flip))(from(ds))
       : Array.isArray(ds)
         ? allIfObservable(
             ds.map(compose(ifObservable(defaultWith(undefined)), _flip))
           )
         : isObject(ds)
-          ? combineLatestObjectIfObservable(
-              mapValues(
-                compose(ifObservable(defaultWith(undefined)), _flip),
-                ds
+          ? ds.type === 'Component'
+            ? ds
+            : combineLatestObjectIfObservable(
+                mapValues(
+                  compose(ifObservable(defaultWith(undefined)), _flip),
+                  ds
+                )
               )
-            )
           : ds
 
 export const flip = ds => toObservable(_flip(ds))
