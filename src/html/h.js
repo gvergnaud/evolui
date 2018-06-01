@@ -22,7 +22,7 @@ const formatChildren = flatMap(
             type => c.type === type
           )
           ? [c]
-          : [{ type: 'VText', text: `${c}` }]
+          : [{ type: 'VText', text: c }]
 )
 
 export default function h(name, _attributes, ..._children) {
