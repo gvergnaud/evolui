@@ -8,12 +8,15 @@ const toStream = component => flip(component).pipe(sample(sharedRaf))
 
 // render :: Observable VirtualDOM -> DOMElement -> Promise Error ()
 export const render = (
-  component,
+  vTree,
   element,
+  context = {},
   { isSvg = false, morphNode = false } = {}
 ) => {
   let rootNode = morphNode ? element : element.firstChild
   let previousTree
+
+  const component = typeof vTree === 'function' ? vTree(context) : vTree
 
   return toStream(component).subscribe({
     next: vTree => {
@@ -21,11 +24,11 @@ export const render = (
         previousTree = vTree.vTree
       } else {
         if (!rootNode) {
-          rootNode = createElement(vTree, isSvg, patch)
+          rootNode = createElement(vTree, isSvg, context)
           element.innerHTML = ''
           element.appendChild(rootNode)
         } else {
-          rootNode = patch(rootNode, previousTree, vTree, isSvg)
+          rootNode = patch(rootNode, previousTree, vTree, isSvg, context)
         }
         previousTree = vTree
       }
@@ -120,18 +123,18 @@ const updateAttrs = (vTree, node, previousAttrs) => {
   }
 }
 
-const updateChildren = (vTree, node, previousChildren, isSvg, patch) => {
+const updateChildren = (vTree, node, previousChildren, isSvg, context) => {
   for (const index in vTree.children) {
     const childTree = vTree.children[index]
     const previousChildTree = previousChildren[index]
     const previousChildNode = node.childNodes[index]
 
     if (!previousChildNode) {
-      const childNode = createElement(childTree, isSvg, patch)
+      const childNode = createElement(childTree, isSvg, context)
       node.appendChild(childNode)
       mount(childTree, childNode)
     } else {
-      patch(previousChildNode, previousChildTree, childTree, isSvg)
+      patch(previousChildNode, previousChildTree, childTree, isSvg, context)
     }
   }
 
@@ -164,26 +167,26 @@ export class VNode {
     this.key = key
   }
 
-  createElement(isSvg, patch) {
+  createElement(isSvg, context) {
     const node = (isSvg = isSvg || this.name === 'svg')
       ? document.createElementNS('http://www.w3.org/2000/svg', this.name)
       : document.createElement(this.name)
 
     updateEvents(this, node, {})
     updateAttrs(this, node, {})
-    updateChildren(this, node, [], isSvg, patch)
+    updateChildren(this, node, [], isSvg, context)
 
     return node
   }
 
-  updateElement(node, previousTree, isSvg, patch) {
+  updateElement(node, previousTree, isSvg, context) {
     if (previousTree.name !== this.name) {
       removeElement(previousTree, node)
-      return createElement(this, isSvg, patch)
+      return createElement(this, isSvg, context)
     } else {
       updateEvents(this, node, previousTree.events)
       updateAttrs(this, node, previousTree.attrs)
-      updateChildren(this, node, previousTree.children, isSvg, patch)
+      updateChildren(this, node, previousTree.children, isSvg, context)
 
       this.lifecycle.update(node)
     }
@@ -243,7 +246,7 @@ export class Component {
     this.key = key
   }
 
-  createElement(isSvg) {
+  createElement(isSvg, context) {
     let node = isSvg
       ? document.createElementNS('http://www.w3.org/2000/svg', 'g')
       : document.createElement('div')
@@ -257,7 +260,7 @@ export class Component {
     if (!vdomStream)
       throw new Error(`Component ${this.name.name} must return a stream!`)
 
-    this.state.subscription = render(vdomStream, node, {
+    this.state.subscription = render(vdomStream, node, context, {
       isSvg,
       morphNode: true
     })
@@ -265,12 +268,12 @@ export class Component {
     return node
   }
 
-  updateElement(node, previousComponent, isSvg, patch) {
+  updateElement(node, previousComponent, isSvg, context) {
     this.state = previousComponent.state
 
     if (previousComponent.name !== this.name) {
       removeElement(previousComponent, node)
-      return createElement(this, isSvg, patch)
+      return createElement(this, isSvg, context)
     } else {
       if (
         !isShallowEqual(
@@ -332,16 +335,17 @@ export default function patch(
   node,
   previousTree = createVTree(node),
   vTree,
-  isSvg
+  isSvg,
+  context
 ) {
   if (vTree.type !== previousTree.type || vTree.key !== previousTree.key) {
     removeElement(previousTree, node)
-    const newNode = createElement(vTree, isSvg, patch)
+    const newNode = createElement(vTree, isSvg, context)
     node.parentNode.replaceChild(newNode, node)
     mount(vTree, newNode, isSvg)
     return newNode
   } else {
-    const newNode = updateElement(vTree, node, previousTree, isSvg, patch)
+    const newNode = updateElement(vTree, node, previousTree, isSvg, context)
     if (newNode) {
       node.parentNode.replaceChild(newNode, node)
       mount(vTree, newNode, isSvg)
