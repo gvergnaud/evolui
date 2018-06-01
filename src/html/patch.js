@@ -311,6 +311,7 @@ export const removeElement = (vTree, ...args) =>
 
 function createVTree(node) {
   return {
+    key: 'INIT',
     type: 'VNode',
     name: node.nodeName.toLowerCase(),
     lifecycle: createDefaultLifecycle(),
