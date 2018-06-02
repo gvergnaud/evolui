@@ -1,5 +1,6 @@
 import { flatMap } from '../utils/arrays'
 import { isEmpty, createDefaultLifecycle } from '../utils/misc'
+import { isObservable, map, filter } from '../utils/observables'
 
 const isLifecycle = key => ['mount', 'update', 'unmount'].includes(key)
 const isEvent = key => !!key.match(/^on/)
@@ -22,7 +23,20 @@ const formatChildren = flatMap(
             type => c.type === type
           )
           ? [c]
-          : [{ type: 'VText', text: c }]
+          : isObservable(c)
+            ? [
+                {
+                  type: 'Component',
+                  name: function AnonymousComponent() {
+                    return c.pipe(
+                      map(c => formatChildren([c])[0]),
+                      filter(c => !isEmpty(c))
+                    )
+                  },
+                  untouchedAttributes: { children: [] }
+                }
+              ]
+            : [{ type: 'VText', text: c }]
 )
 
 export default function h(name, _attributes, ..._children) {

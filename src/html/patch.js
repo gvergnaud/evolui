@@ -1,6 +1,16 @@
-import { createDefaultLifecycle } from '../utils/misc'
-import { isEmpty } from '../utils/misc'
-import { BehaviorSubject, raf, share, sample, flip } from '../utils/observables'
+import { isEmpty, createDefaultLifecycle } from '../utils/misc'
+import { pickBy } from '../utils/objects'
+import {
+  BehaviorSubject,
+  raf,
+  share,
+  sample,
+  flip,
+  map,
+  switchMap,
+  shareReplay,
+  combineLatestObject
+} from '../utils/observables'
 
 const sharedRaf = share()(raf)
 
@@ -8,7 +18,7 @@ const toStream = component => flip(component).pipe(sample(sharedRaf))
 
 // render :: Observable VirtualDOM -> DOMElement -> Promise Error ()
 export const render = (
-  vTree,
+  initialVTree,
   element,
   context = {},
   { isSvg = false, morphNode = false } = {}
@@ -16,9 +26,10 @@ export const render = (
   let rootNode = morphNode ? element : element.firstChild
   let previousTree
 
-  const component = typeof vTree === 'function' ? vTree(context) : vTree
+  const component =
+    typeof initialVTree === 'function' ? initialVTree(context) : initialVTree
 
-  return toStream(component).subscribe({
+  const sub = toStream(component).subscribe({
     next: vTree => {
       if (vTree.type === 'VPatch') {
         previousTree = vTree.vTree
@@ -34,6 +45,13 @@ export const render = (
       }
     }
   })
+
+  return {
+    unsubscribe: () => {
+      if (previousTree) removeElement(previousTree, rootNode)
+      sub.unsubscribe()
+    }
+  }
 }
 
 export class VText {
@@ -230,11 +248,20 @@ export class VPatch {
   }
 }
 
+const pickNonObservables = props => pickBy((_, key) => !/\$$/.test(key), props)
+
 function createPropsStream(props) {
   const sub = new BehaviorSubject(props)
   return {
     next: props => sub.next(props),
-    stream: sub
+    stream: sub.pipe(
+      switchMap(props =>
+        combineLatestObject(pickNonObservables(props)).pipe(
+          map(values => ({ ...props, ...values }))
+        )
+      ),
+      shareReplay(1)
+    )
   }
 }
 
@@ -253,14 +280,13 @@ export class Component {
 
     this.state = {}
     this.state.props = createPropsStream(this.untouchedAttributes)
-    this.state.childTree = undefined
 
-    const vdomStream = this.name(this.state.props.stream)
+    const vTree = this.name(this.state.props.stream)
 
-    if (!vdomStream)
+    if (!vTree)
       throw new Error(`Component ${this.name.name} must return a stream!`)
 
-    this.state.subscription = render(vdomStream, node, context, {
+    this.state.subscription = render(vTree, node, context, {
       isSvg,
       morphNode: true
     })
@@ -286,9 +312,8 @@ export class Component {
     }
   }
 
-  removeElement(node) {
+  removeElement() {
     this.state.subscription.unsubscribe()
-    if (this.state.childTree) removeElement(this.state.childTree, node)
   }
 
   mount() {}

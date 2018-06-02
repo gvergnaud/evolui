@@ -1,9 +1,19 @@
 import { Observable, BehaviorSubject, of, from, combineLatest } from 'rxjs'
-import { map, filter, startWith, share } from 'rxjs/operators'
+import { map, filter, startWith, share, shareReplay } from 'rxjs/operators'
 import { compose, curry } from './functions'
 import { isObject, mapValues } from './objects'
 
-export { Observable, BehaviorSubject, of, from, map, filter, startWith, share }
+export {
+  Observable,
+  BehaviorSubject,
+  of,
+  from,
+  map,
+  filter,
+  startWith,
+  share,
+  shareReplay
+}
 
 export const isPromise = p => p && typeof p.then === 'function'
 
