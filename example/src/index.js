@@ -1,5 +1,4 @@
-import html, { render, h } from 'evolui'
-import { ease } from 'evolui/extra'
+import { render, h } from 'evolui'
 import { merge, fromEvent } from 'rxjs'
 import { map, startWith, shareReplay } from 'rxjs/operators'
 

@@ -173,8 +173,8 @@ const ComplexAnimation = () => {
     <div mount={() => console.log('complex create')}>
       <GrabbableCircle
         radius={50}
-        r={255}
-        g={255}
+        r={57}
+        g={77}
         b={255}
         onDragStart={onDragStart}
         drag$={drag$}
@@ -183,9 +183,9 @@ const ComplexAnimation = () => {
       />
       <GrabbableCircle
         radius={30}
-        r={255}
-        g={255}
-        b={255}
+        r={249}
+        g={0}
+        b={114}
         onDragStart={onDragStart}
         drag$={drag$}
         isDragging$={isDragging$}
@@ -193,52 +193,16 @@ const ComplexAnimation = () => {
       />
       <GrabbableCircle
         radius={15}
-        r={255}
-        g={255}
-        b={255}
+        r={5}
+        g={241}
+        b={163}
         onDragStart={onDragStart}
         drag$={drag$}
         isDragging$={isDragging$}
         exploadEvery={4}
       />
-      {/*
-          <GrabbableCircle
-            radius={50}
-            r={57}
-            g={77}
-            b={255}
-            onDragStart={onDragStart}
-            drag$={drag$}
-            isDragging$={isDragging$}
-            exploadEvery={2}
-          />
-          <GrabbableCircle
-            radius={30}
-            r={249}
-            g={0}
-            b={114}
-            onDragStart={onDragStart}
-            drag$={drag$}
-            isDragging$={isDragging$}
-            exploadEvery={2}
-          />
-          <GrabbableCircle
-            radius={15}
-            r={5}
-            g={241}
-            b={163}
-            onDragStart={onDragStart}
-            drag$={drag$}
-            isDragging$={isDragging$}
-            exploadEvery={4}
-          />
-      */}
     </div>
   )
 }
 
-export default () => (
-  <div>
-    <ComplexAnimation />
-  </div>
-)
+export default ComplexAnimation

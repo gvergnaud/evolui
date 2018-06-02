@@ -3,6 +3,7 @@ import { ease } from 'evolui/extra'
 import { map } from 'rxjs/operators'
 
 import ComplexAnimation from './ComplexAnimation'
+import PinterestLikeGrid from './PinterestLikeGrid'
 
 const range = (x, y) =>
   Array(y - x)
@@ -44,6 +45,20 @@ const Circle = props$ => ({ mouse$ }) => {
   return <div style={style$} />
 }
 
+const SimpleAnimation = () => (
+  <div>
+    {range(0, 10).map(i => (
+      <Circle
+        key={i}
+        stiffness={100 + i * 10}
+        damping={16}
+        radius={35}
+        color={`rgba(5, 241, 163, ${i / 10})`}
+      />
+    ))}
+  </div>
+)
+
 const Lol = () => ({ mouse$ }) => (
   <p
     style={{
@@ -56,19 +71,7 @@ const Lol = () => ({ mouse$ }) => (
 
 const App = () => (
   <div>
-    {/*<Lol />*/}
-    <ComplexAnimation />
-    {/*<div>
-      {range(0, 10).map(i => (
-        <Circle
-          key={i}
-          stiffness={100 + i * 10}
-          damping={16}
-          radius={35}
-          color={`rgba(5, 241, 163, ${i / 10})`}
-        />
-      ))}
-    </div>*/}
+    <PinterestLikeGrid />
   </div>
 )
 
