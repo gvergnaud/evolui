@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "parcel src/index.html",
-    "start": "parcel src/index.html -p 3000"
+    "start": "webpack-dev-server --open --mode development",
+    "build": "webpack -p"
   },
   "keywords": [],
   "author": "",
@@ -16,16 +16,17 @@
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-react-jsx": "^6.24.1",
     "babel-preset-env": "^1.7.0",
-    "parcel-bundler": "^1.8.1",
     "prettier": "^1.11.1"
   },
   "dependencies": {
+    "css-loader": "^0.28.11",
     "evolui": "^1.6.4",
     "immutable-deep-update": "^1.0.1",
     "rxjs": "^6.1.0",
-    "socket.io-client": "^2.0.4"
-  },
-  "alias": {
-    "evolui": "../src"
+    "socket.io-client": "^2.0.4",
+    "style-loader": "^0.21.0",
+    "webpack": "^4.10.2",
+    "webpack-cli": "^2.1.5",
+    "webpack-dev-server": "^3.1.4"
   }
 }

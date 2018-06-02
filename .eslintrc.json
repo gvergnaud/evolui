@@ -35,7 +35,7 @@
     "ArrayBuffer": false
   },
   "rules": {
-    "no-debugger": "error",
+    "no-debugger": 0,
     "no-unsafe-negation": "error",
     "brace-style": [
       "error",
