@@ -99,23 +99,21 @@ const Grid = props$ => {
 
           <div class="container">
             {modelsAndDimensions$.pipe(
-              map(modelsAndDimensions => (
-                <div>
-                  {modelsAndDimensions.map(([dimension, model]) => (
-                    <ModelCard
-                      model={model}
-                      x={dimension.x$.pipe(ease(150, 18, model.uid + 'x'))}
-                      y={dimension.y$.pipe(ease(120, 25, model.uid + 'y'))}
-                      height={dimension.height$.pipe(
-                        ease(170, 20, model.uid + 'height')
-                      )}
-                      width={dimension.width$.pipe(
-                        ease(170, 20, model.uid + 'width')
-                      )}
-                    />
-                  ))}
-                </div>
-              ))
+              map(modelsAndDimensions =>
+                modelsAndDimensions.map(([dimension, model]) => (
+                  <ModelCard
+                    model={model}
+                    x={dimension.x$.pipe(ease(150, 18, model.uid + 'x'))}
+                    y={dimension.y$.pipe(ease(120, 25, model.uid + 'y'))}
+                    height={dimension.height$.pipe(
+                      ease(170, 20, model.uid + 'height')
+                    )}
+                    width={dimension.width$.pipe(
+                      ease(170, 20, model.uid + 'width')
+                    )}
+                  />
+                ))
+              )
             )}
           </div>
         </div>
