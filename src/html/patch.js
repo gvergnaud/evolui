@@ -1,4 +1,5 @@
 import { isEmpty, createDefaultLifecycle } from '../utils/misc'
+import { flatten } from '../utils/arrays'
 import { pickBy } from '../utils/objects'
 import {
   BehaviorSubject,
@@ -16,7 +17,23 @@ const sharedRaf = share()(raf)
 
 const toStream = component => flip(component).pipe(sample(sharedRaf))
 
-// render :: Observable VirtualDOM -> DOMElement -> Promise Error ()
+// type Style = Map 'style' (Map String (String | Observable String))
+//
+// type Attr = (Map String (String | Observable String)) | Style
+//
+// type Props = Map String a
+//
+// data Tree
+//   = VNode {
+//     attrs :: Attr,
+//     children :: [Tree]
+//   }
+//   | VText { text :: String | Observable String }
+//   | Component { name :: (Observable Props -> Observable Tree) }
+//   | [Tree]
+//   | Observable Tree
+
+// render :: Tree -> DOMElement -> ()
 export const render = (
   initialVTree,
   element,
@@ -33,6 +50,14 @@ export const render = (
     next: vTree => {
       if (vTree.type === 'VPatch') {
         previousTree = vTree.vTree
+      } else if (Array.isArray(vTree)) {
+        if (!rootNode) {
+          rootNode = element
+          updateChildren(rootNode, previousTree || [], vTree, isSvg, context)
+        } else {
+          updateChildren(rootNode, previousTree || [], vTree, isSvg, context)
+        }
+        previousTree = vTree
       } else {
         if (!rootNode) {
           rootNode = createElement(vTree, isSvg, context)
@@ -141,10 +166,12 @@ const updateAttrs = (vTree, node, previousAttrs) => {
   }
 }
 
-const updateChildren = (vTree, node, previousChildren, isSvg, context) => {
-  for (const index in vTree.children) {
-    const childTree = vTree.children[index]
-    const previousChildTree = previousChildren[index]
+const updateChildren = (node, previousChildren, children, isSvg, context) => {
+  const flatChildren = flatten(children)
+  const flatPreviousChildren = flatten(previousChildren)
+  for (const index in flatChildren) {
+    const childTree = flatChildren[index]
+    const previousChildTree = flatPreviousChildren[index]
     const previousChildNode = node.childNodes[index]
 
     if (!previousChildNode) {
@@ -156,9 +183,9 @@ const updateChildren = (vTree, node, previousChildren, isSvg, context) => {
     }
   }
 
-  for (const index in [].slice.call(node.childNodes, vTree.children.length)) {
-    const realIndex = parseInt(index) + vTree.children.length
-    const childTree = previousChildren[realIndex]
+  for (const index in [].slice.call(node.childNodes, flatChildren.length)) {
+    const realIndex = parseInt(index) + flatChildren.length
+    const childTree = flatPreviousChildren[realIndex]
     const childNode = node.childNodes[realIndex]
     if (childNode) {
       removeElement(childTree, childNode)
@@ -192,7 +219,7 @@ export class VNode {
 
     updateEvents(this, node, {})
     updateAttrs(this, node, {})
-    updateChildren(this, node, [], isSvg, context)
+    updateChildren(node, [], this.children, isSvg, context)
 
     return node
   }
@@ -204,14 +231,14 @@ export class VNode {
     } else {
       updateEvents(this, node, previousTree.events)
       updateAttrs(this, node, previousTree.attrs)
-      updateChildren(this, node, previousTree.children, isSvg, context)
+      updateChildren(node, previousTree.children, this.children, isSvg, context)
 
       this.lifecycle.update(node)
     }
   }
 
   removeElement(node) {
-    this.children.map((child, index) =>
+    flatten(this.children).map((child, index) =>
       removeElement(child, node.childNodes[index])
     )
 
@@ -219,7 +246,7 @@ export class VNode {
   }
 
   mount(node) {
-    this.children.map(child => mount(child))
+    flatten(this.children).map(child => mount(child))
 
     this.lifecycle.mount(node)
   }

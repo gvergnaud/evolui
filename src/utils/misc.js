@@ -7,4 +7,5 @@ export const createDefaultLifecycle = () => ({
 })
 
 export const isEmpty = x =>
-  x !== 0 && (!x || (typeof x === 'string' && !x.trim()))
+  (x !== 0 && (!x || (typeof x === 'string' && !x.trim()))) ||
+  (Array.isArray(x) && !x.length)

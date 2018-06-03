@@ -9,3 +9,5 @@ export const dropRight = (n, xs) => xs.slice(0, xs.length - n)
 export const flatMap = curry((f, xs) =>
   xs.reduce((acc, x) => acc.concat(f(x)), [])
 )
+
+export const flatten = flatMap(x => x)
