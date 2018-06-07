@@ -1,55 +1,10 @@
 import { h } from 'evolui'
 import { ease } from 'evolui/extra'
-import { Subject, fromEvent, merge, empty, interval } from 'rxjs'
-import { map, switchMap, startWith, share, takeUntil } from 'rxjs/operators'
-import { addPosition } from '../utils'
+import { merge, empty, interval } from 'rxjs'
+import { map, switchMap, startWith } from 'rxjs/operators'
+import { createDragHandler } from '../utils'
 
 const rand = (start, end) => start + Math.random() * (end - start)
-
-const createDragHandler = () => {
-  const mouse$ = merge(
-    fromEvent(window, 'mousemove').pipe(map(addPosition)),
-    fromEvent(window, 'touchmove').pipe(map(addPosition))
-  )
-
-  const end$ = merge(
-    fromEvent(window, 'mouseup'),
-    fromEvent(window, 'touchend')
-  )
-
-  const start$ = new Subject()
-  const onDragStart = e => start$.next(e)
-
-  const drag$ = start$.pipe(
-    map(addPosition),
-    switchMap(({ target, position: initPosition }) => {
-      const { left, top } = target.getBoundingClientRect()
-      return mouse$.pipe(
-        map(({ position }) => ({
-          left: initPosition.x - left,
-          top: initPosition.y - top,
-          x: position.x - (initPosition.x - left),
-          y: position.y - (initPosition.y - top)
-        })),
-        takeUntil(end$)
-      )
-    }),
-    share()
-  )
-
-  const isDragging$ = merge(
-    start$.pipe(map(() => true)),
-    end$.pipe(map(() => false))
-  ).pipe(startWith(false))
-
-  return {
-    onDragStart,
-    drag$,
-    dragStart$: start$,
-    dragEnd$: drag$.pipe(switchMap(() => end$)),
-    isDragging$
-  }
-}
 
 const Circle = props$ =>
   props$.pipe(
