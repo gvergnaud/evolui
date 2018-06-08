@@ -24,22 +24,29 @@ export default function patch(
   node,
   previousTree = createVTree(node),
   vTree,
-  isSvg
+  isSvg,
+  context
 ) {
   if (
     vTree.constructor !== previousTree.constructor ||
     vTree.key !== previousTree.key
   ) {
     previousTree.removeElement(node)
-    const newNode = vTree.createElement(isSvg, patch)
+    const newNode = vTree.createElement(isSvg, patch, context)
     node.parentNode.replaceChild(newNode, node)
     vTree.mount(newNode)
     return newNode
   } else {
-    const newNode = vTree.updateElement(node, previousTree, isSvg, patch)
+    const newNode = vTree.updateElement(
+      node,
+      previousTree,
+      isSvg,
+      patch,
+      context
+    )
     if (newNode) {
       node.parentNode.replaceChild(newNode, node)
-      vTree.mount(newNode, isSvg)
+      vTree.mount(newNode, isSvg, context)
       return newNode
     } else {
       return node

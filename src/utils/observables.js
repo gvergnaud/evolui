@@ -56,7 +56,7 @@ export const switchMap = curry((switchMapper, stream) => {
 })
 
 export const all = obs =>
-  obs.length ? combineLatest(...obs, (...xs) => xs) : of([])
+  obs.length ? combineLatest(...obs.map(toObservable), (...xs) => xs) : of([])
 
 export const blockComplete = () => stream =>
   new Observable(observer =>

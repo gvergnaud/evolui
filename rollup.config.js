@@ -3,11 +3,16 @@ import nodeResolve from 'rollup-plugin-node-resolve'
 import commonjs from 'rollup-plugin-commonjs'
 import uglify from 'rollup-plugin-uglify'
 
-const createConfig = (input, output, additionnalPlugins = []) => ({
+const createConfig = (
+  input,
+  output,
+  additionnalPlugins = [],
+  format = 'cjs'
+) => ({
   input,
   output: {
     file: output,
-    format: 'es'
+    format
   },
   plugins: [
     nodeResolve({

@@ -2,7 +2,7 @@ import patch from './patch'
 import VPatch from './VPatch'
 
 // render :: Observable VirtualDOM -> DOMElement -> Promise Error ()
-const render = (component, element) => {
+const render = (component, element, context) => {
   let rootNode = element.firstChild
   let previousTree
 
@@ -12,10 +12,10 @@ const render = (component, element) => {
         previousTree = vTree.vTree
       } else {
         if (!rootNode) {
-          rootNode = vTree.createElement(false, patch)
+          rootNode = vTree.createElement(false, patch, context)
           element.appendChild(rootNode)
         } else {
-          patch(rootNode, previousTree, vTree)
+          patch(rootNode, previousTree, vTree, false, context)
         }
         previousTree = vTree
       }

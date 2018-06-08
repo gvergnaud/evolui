@@ -17,7 +17,7 @@ export default class Component {
     this.key = key
   }
 
-  createElement(isSvg, patch) {
+  createElement(isSvg, patch, context) {
     let node = isSvg
       ? document.createElementNS('http://www.w3.org/2000/svg', 'g')
       : document.createElement('div')
@@ -26,19 +26,28 @@ export default class Component {
     this.state.props = createPropsStream(this.untouchedAttributes)
     this.state.childTree = undefined
 
-    const vdomStream = this.name(this.state.props.stream)
+    const component = this.name(this.state.props.stream)
 
-    if (!vdomStream)
+    if (!component)
       throw new Error(`Component ${this.name.name} must return a stream!`)
 
-    this.state.subscription = vdomStream
+    const stream =
+      typeof component === 'function' ? component(context) : component
+
+    this.state.subscription = stream
       .pipe(flatten, sample(sharedRaf))
       .subscribe({
         next: newChildTree => {
           if (newChildTree instanceof VPatch) {
             this.state.childTree = newChildTree.vTree
           } else {
-            node = patch(node, this.state.childTree, newChildTree, isSvg)
+            node = patch(
+              node,
+              this.state.childTree,
+              newChildTree,
+              isSvg,
+              context
+            )
             this.state.childTree = newChildTree
           }
         },
@@ -48,12 +57,12 @@ export default class Component {
     return node
   }
 
-  updateElement(node, previousComponent, isSvg, patch) {
+  updateElement(node, previousComponent, isSvg, patch, context) {
     this.state = previousComponent.state
 
     if (previousComponent.name !== this.name) {
       previousComponent.removeElement(node)
-      return this.createElement(isSvg, patch)
+      return this.createElement(isSvg, patch, context)
     } else {
       this.state.props.next(this.untouchedAttributes)
     }

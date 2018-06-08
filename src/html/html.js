@@ -11,6 +11,7 @@ const createRenderProcess = vdom$ =>
     let domNode
     let previousTree
     let isSvg
+    let context
 
     return vdom$.subscribe({
       complete: () => observer.complete(),
@@ -20,16 +21,17 @@ const createRenderProcess = vdom$ =>
 
         const onMount = vTree.lifecycle.mount
 
-        vTree.lifecycle.mount = (node, _isSvg) => {
+        vTree.lifecycle.mount = (node, _isSvg, _context) => {
           domNode = node
           isSvg = _isSvg
+          context = _context
           onMount(node)
         }
 
         if (!domNode) {
           observer.next(vTree)
         } else {
-          domNode = patch(domNode, previousTree, vTree, isSvg)
+          domNode = patch(domNode, previousTree, vTree, isSvg, context)
           observer.next(new VPatch(vTree))
         }
 

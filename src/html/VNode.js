@@ -30,26 +30,26 @@ export default class VNode {
     this.key = key
   }
 
-  createElement(isSvg, patch) {
+  createElement(isSvg, patch, context) {
     const node = (isSvg = isSvg || this.name === 'svg')
       ? document.createElementNS('http://www.w3.org/2000/svg', this.name)
       : document.createElement(this.name)
 
     this.updateEvents(node, {})
     this.updateAttrs(node, {})
-    this.updateChildren(node, [], isSvg, patch)
+    this.updateChildren(node, [], isSvg, patch, context)
 
     return node
   }
 
-  updateElement(node, previousTree, isSvg, patch) {
+  updateElement(node, previousTree, isSvg, patch, context) {
     if (previousTree.name !== this.name) {
       previousTree.removeElement(node)
-      return this.createElement(isSvg, patch)
+      return this.createElement(isSvg, patch, context)
     } else {
       this.updateEvents(node, previousTree.events)
       this.updateAttrs(node, previousTree.attrs)
-      this.updateChildren(node, previousTree.children, isSvg, patch)
+      this.updateChildren(node, previousTree.children, isSvg, patch, context)
 
       this.lifecycle.update(node)
     }
@@ -63,10 +63,12 @@ export default class VNode {
     this.lifecycle.unmount(node)
   }
 
-  mount(node) {
-    this.children.map(child => child.mount())
+  mount(node, isSvg, context) {
+    this.children.map((child, i) =>
+      child.mount(node.childNodes[i], isSvg, context)
+    )
 
-    this.lifecycle.mount(node)
+    this.lifecycle.mount(node, isSvg, context)
   }
 
   updateEvents(node, previousEvents) {
@@ -112,18 +114,18 @@ export default class VNode {
     }
   }
 
-  updateChildren(node, previousChildren, isSvg, patch) {
+  updateChildren(node, previousChildren, isSvg, patch, context) {
     for (const index in this.children) {
       const childTree = this.children[index]
       const previousChildTree = previousChildren[index]
       const previousChildNode = node.childNodes[index]
 
       if (!previousChildNode) {
-        const childNode = childTree.createElement(isSvg, patch)
+        const childNode = childTree.createElement(isSvg, patch, context)
         node.appendChild(childNode)
-        childTree.mount(childNode)
+        childTree.mount(childNode, isSvg, context)
       } else {
-        patch(previousChildNode, previousChildTree, childTree, isSvg)
+        patch(previousChildNode, previousChildTree, childTree, isSvg, context)
       }
     }
 
