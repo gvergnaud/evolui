@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "css-loader": "^0.28.11",
-    "evolui": "^1.6.4",
+    "evolui": "^2.0.0-alpha.1",
     "immutable-deep-update": "^1.0.1",
     "rxjs": "^6.1.0",
     "socket.io-client": "^2.0.4",

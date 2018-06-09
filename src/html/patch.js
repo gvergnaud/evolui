@@ -73,7 +73,13 @@ export const render = (
 
   return {
     unsubscribe: () => {
-      if (previousTree) removeElement(previousTree, rootNode)
+      if (previousTree) {
+        if (Array.isArray(previousTree)) {
+          updateChildren(rootNode, previousTree, [], isSvg, context)
+        } else {
+          removeElement(previousTree, rootNode)
+        }
+      }
       sub.unsubscribe()
     }
   }
