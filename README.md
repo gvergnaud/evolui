@@ -39,10 +39,12 @@ npm install evolui rxjs
 import html, { render } from 'evolui'
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 
+const promise = delay(1000).then(() => 'World!')
+
 render(
   html`
     <p>
-      Hello, ${delay(1000).then(() => 'World!')}
+      Hello, ${promise}
     </p>
   `,
   document.querySelector('#mount')
@@ -58,13 +60,15 @@ import html, { render } from 'evolui'
 import { interval } from 'rxjs'
 import { take, map } from 'rxjs/operators'
 
+const text$ = interval(1000).pipe(
+  take(4),
+  map(index => ['.', '..', '...', 'World!'][index])
+)
+
 render(
   html`
     <p>
-      Hello, ${interval(1000).pipe(
-        take(4),
-        map(index => ['.', '..', '...', 'World!'][index])
-      )}
+      Hello, ${text$}
     </p>
   `,
   document.querySelector('#mount')
@@ -248,12 +252,14 @@ import { ease } from 'evolui/extra'
 import { interval } from 'rxjs'
 import { map } from 'rxjs/operators'
 
+const width$ = interval(1000).pipe(
+  map(i => i * 50),
+  ease(120, 20)
+)
+
 render(
   html`
-    <div style="width: ${interval(1000).pipe(
-      map(i => i * 50),
-      ease(120, 20)
-    )}px" />
+    <div style="width: ${width$}px" />
   `,
   document.querySelector('#mount')
 )
@@ -352,7 +358,8 @@ html`
   <div
     mount="${el => console.log('mounted!', el)}"
     update="${el => console.log('updated', el)}"
-    unmount="${el => console.log('will unmount!', el)}" />
+    unmount="${el => console.log('will unmount!', el)}"
+  />
 `
 ```
 
