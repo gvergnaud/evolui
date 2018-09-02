@@ -5,8 +5,7 @@
   "main": "lib/evolui.js",
   "scripts": {
     "clean": "rimraf lib",
-    "build":
-      "npm run clean && BABEL_ENV=production rollup --config rollup.config.js",
+    "build": "npm run clean && BABEL_ENV=production rollup --config rollup.config.js",
     "prepare": "npm run clean && npm run build",
     "test": "jest"
   },
@@ -16,7 +15,10 @@
   },
   "author": "Gabriel Vergnaud <github.com/gvergnaud>",
   "license": "MIT",
-  "files": ["lib", "extra.js"],
+  "files": [
+    "lib",
+    "extra.js"
+  ],
   "dependencies": {
     "rx-ease": "^0.2.0",
     "vdom-tag": "^0.1.1"
@@ -42,6 +44,7 @@
     "rollup-plugin-babel": "^3.0.2",
     "rollup-plugin-commonjs": "^8.2.6",
     "rollup-plugin-node-resolve": "^3.0.0",
-    "rollup-plugin-uglify": "^3.0.0"
+    "rollup-plugin-uglify": "^3.0.0",
+    "rxjs": "^6.3.1"
   }
 }
